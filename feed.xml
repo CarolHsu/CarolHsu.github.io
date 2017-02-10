@@ -1,0 +1,1416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>shesee's 不定期更新</title>
+    <description>大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</description>
+    <link>http://carolhsu.github.io/</link>
+    <atom:link href="http://carolhsu.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 11 Feb 2017 00:20:18 +0800</pubDate>
+    <lastBuildDate>Sat, 11 Feb 2017 00:20:18 +0800</lastBuildDate>
+    <generator>Jekyll v3.4.0</generator>
+    
+      <item>
+        <title>Upgrade to Octopress 3</title>
+        <description>&lt;p&gt;心血來潮大掃除，升級到 Octopress 3 了。&lt;/p&gt;
+</description>
+        <pubDate>Fri, 10 Feb 2017 22:59:40 +0800</pubDate>
+        <link>http://carolhsu.github.io/2017/02/10/upgrade-to-octopress-3.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2017/02/10/upgrade-to-octopress-3.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>不無知的使用 Gemfile</title>
+        <description>&lt;p&gt;每一個開始寫 Ruby on Rails 的開發者都知道 Gemfile，但是可能不是每一個人都知道如何很清楚自己在幹嘛的去設定 Gemfile。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gem 'somegem', '~&amp;gt; 3.2'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;這種寫法在 Gemfile 中非常常見，而 &lt;code class=&quot;highlighter-rouge&quot;&gt;~&amp;gt;&lt;/code&gt; 這個符號是有名稱的，在這個例子中，它稱為 &lt;strong&gt;twiddle wakka&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;上面這行 code 代表的是： &lt;code class=&quot;highlighter-rouge&quot;&gt;bundle install&lt;/code&gt; 的時候請安裝 &lt;code class=&quot;highlighter-rouge&quot;&gt;somegem&lt;/code&gt;，&lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;gt;=&lt;/code&gt;版本 &lt;code class=&quot;highlighter-rouge&quot;&gt;3.2.0&lt;/code&gt;，且 &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;&lt;/code&gt; 版本 &lt;code class=&quot;highlighter-rouge&quot;&gt;4.0.0&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;為什麼要這樣指定版本呢？這就要從語意化版號 &lt;a href=&quot;http://semver.org&quot;&gt;Semantic Versioning&lt;/a&gt; 說起了。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h1 id=&quot;什麼是-semantic-versioning&quot;&gt;什麼是 Semantic Versioning？&lt;/h1&gt;
+
+&lt;p&gt;用 &lt;code class=&quot;highlighter-rouge&quot;&gt;MAJOR&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;MINOR&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;PATCH&lt;/code&gt; 的形式給予版本號，意義代表如下：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;MAJOR&lt;/strong&gt; version: 當你做了一些&lt;strong&gt;不往下相容&lt;/strong&gt;的 API 改變&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;MINOR&lt;/strong&gt; version: 當你做了一些&lt;strong&gt;往下相容&lt;/strong&gt;的功能性改變&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;PITCH&lt;/strong&gt; version: 當你做了一些&lt;strong&gt;往下相容&lt;/strong&gt;的 bug 修復&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;從語意化版號的定義上來看，Gemfile 的 twiddle wakka 符號的用法就相當明朗了：我們為了防止 gem 升級以後的 API 不相容，但又不希望某些功能增加或 bug 修復沒跟上流行，於是說好在版本 3.2.0 到 4.0.0 之間都跟著 &lt;code class=&quot;highlighter-rouge&quot;&gt;bundle install&lt;/code&gt; 升級。&lt;/p&gt;
+
+&lt;p&gt;因此最上面的範例其實就相當於這種寫法&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gem 'somegem', '&amp;gt;= 3.2.0', '&amp;lt; 4.0'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;這種「悲觀的版本限制」可以確保 reference 其他 gems 的程式本體不會因為某個 gem 大改版而崩潰，感覺好處多多。現在問題來了：下面這行 code 和本文開頭範例的不同之處在哪裡你清楚嗎？&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gem 'somegem', '~&amp;gt; 3.2.0'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;過度悲觀的版本限制&quot;&gt;過度悲觀的版本限制&lt;/h1&gt;
+
+&lt;p&gt;細心一點的讀者應該發現了，上面那行的改動不多，其實只是從 &lt;code class=&quot;highlighter-rouge&quot;&gt;~&amp;gt; 3.2&lt;/code&gt; 變成 &lt;code class=&quot;highlighter-rouge&quot;&gt;~&amp;gt; 3.2.0&lt;/code&gt; 這樣而已，但是 Gemfile 的行為卻有決定性的不同，上面的 code 將等於：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gem 'somegem', '&amp;gt;= 3.2.0', '&amp;lt; 3.3.0'
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;此時的 &lt;code class=&quot;highlighter-rouge&quot;&gt;~&amp;gt;&lt;/code&gt; 雖然是一樣的，但是這次，這個 operator 其實也有屬於自己的新名字，它稱為 &lt;strong&gt;spermy operator&lt;/strong&gt;（對，就是你想的那樣，一種 &lt;strong&gt;象形字&lt;/strong&gt; 的概念 XD）&lt;/p&gt;
+
+&lt;p&gt;在上面已經瞭解了語意化版本的定義以後，你應該開始看懂這行 Gemfile 的 code 了，這彰顯了一個很重要的概念：我們是否需要悲觀到去限定版本號到這種程度，只容許更新 bug 修復呢？&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;反正次版號還是往下相容的&lt;/strong&gt;，人還是樂觀點好了😁&lt;/p&gt;
+</description>
+        <pubDate>Tue, 20 Dec 2016 20:51:42 +0800</pubDate>
+        <link>http://carolhsu.github.io/2016/12/20/dont-use-your-gemfile-without-understanding.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2016/12/20/dont-use-your-gemfile-without-understanding.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>寫程式能寫一輩子嗎？ -- 寫在兩年之後</title>
+        <description>&lt;p&gt;&lt;img class=&quot;center&quot; src=&quot;http://i.imgur.com/dODJJoD.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;這幾天&lt;a href=&quot;https://carolhsu.github.com/blog/2013/04/29/coding-whole-life/&quot;&gt;難道寫程式能寫一輩子嗎?&lt;/a&gt;這篇舊文突然回應數暴增，原來是意外的被&lt;a href=&quot;https://www.facebook.com/groups/programmerMagazine/permalink/1053372901346092/&quot;&gt;程式人雜誌&lt;/a&gt;轉載了，我聽朋友說才知道（我看報紙才知道）。2 年前我也只是剛剛結束學生身份不久初出茅廬的小菜鳥，那時有天有感而發寫下的心得，沒想到也打中這麼多在程式領域奮鬥的同路人，實在是讓我覺得有點害羞，有點不知天高地厚。&lt;/p&gt;
+
+&lt;p&gt;2 年的時間匆匆過去，走過了菜鳥新人工程師的歲月，中間有機會跟著 Ruby 社群做過許多有趣的事情，像是 &lt;a href=&quot;http://railsgirls.tw/&quot;&gt;Rails Girls&lt;/a&gt;，有機會管理專案，經營公司，然後繼續寫程式。我必須說，回頭審視當初的初衷，那時的確是不知天高地厚，但是我很慶幸我一直沒有讓自己偏離了本心。我必須說，我想我會寫程式一輩子。不過當時撰文的時候其實就只是談到自己身處的狹義台灣接案公司軟體部門現狀，也不曾真的嘗試過工程師以外的位置，把這篇文章記在兩年的旅途後，也作為對自己的一點印記回顧。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h1 id=&quot;形而上形而下&quot;&gt;形而上，形而下&lt;/h1&gt;
+
+&lt;p&gt;軟體開發不像是蓋房子或是做手機，多數的工不是肉眼可見，台灣以代工起家，傳統思維上很難想像「少即是多」的價值，一般人想要越多裝潢越土豪的別墅，或是越多功能越強悍的手機汽車等等形而下的產品，於是傳統的業主/老闆很難明白，所謂好的軟體的價值。&lt;/p&gt;
+
+&lt;p&gt;軟體沒有重量，沒有形體，傳統的公司組織有時潛意識覺得薪水該與工時或是爆量程式碼成正比，我現在想想，或許這是造成「寫程式能寫一輩子嗎」這句話誕生的契機，當天天的工作都在氣餒中度過，無怪乎會有這樣的想法。這樣的公司/ 老闆不是全部但也不少，所幸的是這些年台灣的環境也越來越注重軟體本身，我期望有一天，台灣能轉變，而我想現在她正在轉變。&lt;/p&gt;
+
+&lt;h1 id=&quot;工程師的鄙視鏈&quot;&gt;工程師的鄙視鏈&lt;/h1&gt;
+
+&lt;p&gt;除此之外，保持虛心。&lt;/p&gt;
+
+&lt;p&gt;我必須承認在努力求進步的過程中，也不自覺犯了&lt;a href=&quot;http://vinta.ws/blog/695&quot;&gt;軟體工程師的鄙視鏈&lt;/a&gt;中的毛病，想著自己要跟著牛人用哪些哪些「工具」，努力學習「工具」，也不自覺的輕視了用其他非牛人「工具」的後進者。有一陣子我覺得很累，追不完的新技術，尤其是現在無人能阻止得了的 JavaScript ，雖說我沒有放棄學習它，不過後來我開始明白我啃了一堆「技術」與「工具」，花了很多時間，卻沒有學到真實的「知識」。&lt;/p&gt;
+
+&lt;p&gt;近日讀了王垠的「&lt;a href=&quot;http://www.yinwang.org/blog-cn/2015/03/03/how-to-respect-a-programmer/&quot;&gt;如何尊重一個程序員&lt;/a&gt;」想通了，我覺得獲益很多，也推薦想要「努力學習」的程式人們一讀。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;人们很喜欢在获得了信息的时候用“学习”这个词，然而我觉得这个词被滥用了。我们应该分清两种情况：“学习”和“了解”。前者指你通过别人的指点和自己的理解，获得了精髓的，不能轻易制造出来的知识。后者只是指你“了解”了原来不知道的一些事情。举个例子，如果有人把一件物品放在了某个你不知道的地方，你找不到，问他，然后他告诉你了。这种信息的获取，显然不叫“学习”，这种信息也不叫做“知识”。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;然而，IT行业很多时候所谓的“学习”，就是类似这种情况。比如，有人写了一些代码，设计了一些框架模块。有人不知道怎么用，然后有人告诉他了。很多人把这种情况称为“学习”，这其实是对人的不尊重。这跟有人告诉你他把东西放在哪里了，是同样性质的。这样的代码和设计，我也可以做，甚至做得更好，凭什么你说我在向你学习呢？我只是了解了一下而已。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;所谓学习，必须是更加高级的知识和技能，必须有一种“有收获”，“有提高”的感觉。简单的信息获取不能叫做“学习”，只能叫做“了解”。分清“了解”和“学习”，不以老师自居，是尊重人的一个重要表现。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;寫程式以外&quot;&gt;寫程式以外&lt;/h1&gt;
+
+&lt;p&gt;在一路亂七八糟的過程裡，我學習到的是，把一件事做好，重要的不只是程式。但是如果要在程式開發的領域繼續穩健的走下去，無論今天身為一個工程師，資深工程師，tech leader，都必須要維持虛心，持續學習，不僅僅是工作上的需求，我更體會到這幾乎是職業道德。&lt;/p&gt;
+
+&lt;p&gt;在哪個位置，就把哪個位置的事情做好。&lt;/p&gt;
+
+&lt;p&gt;我想我會寫程式一輩子，持續學習一輩子，不只單單是因為程式本身。因為這是我會的不多的技能中，能夠比較快讓這個世界美好的一項，我期望自己不忘初衷，繼續做著可以讓我感到驕傲的事情，並且維持專業。什麼是可以讓我感到驕傲的事情，我想了很久，我想這個答案不是賺錢，不是飛黃騰達，而是非常老梗的「讓世界更美好」。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;我希望可以努力工作到至少70歲（奴性真重），這代表我只剩2172週的時間可以去推動台灣生活環境的改善。自己仍渺小的微不足道，所以要繼續奮鬥下去。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;這是一則朋友的發言，讓我想到其實生命真的是倏忽即逝，但是我們仍是可以保有以天下為己任，任重而道遠的氣魄，無論身處那個位置，是程式人或者不是，寫程式或許不是每個人都能一輩子，但是虔誠的專業可以一輩子，熱血可以一輩子 :)&lt;/p&gt;
+</description>
+        <pubDate>Mon, 23 Mar 2015 10:48:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2015/03/23/coding-whole-life-2-years-later.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2015/03/23/coding-whole-life-2-years-later.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Raspberry Pi with Ruby</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://www.raspberrypi.com.tw/wp-content/uploads/2015/01/anidees_case_for_raspberrypi_model_b_plus_clear_01.jpeg&quot; alt=&quot;Raspberry Pi Model B+&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;raspberry-pi&quot;&gt;Raspberry Pi&lt;/h1&gt;
+
+&lt;p&gt;是說都推出好久好久了才有機會玩到 &lt;a href=&quot;http://www.raspberrypi.org/&quot;&gt;Raspberry Pi&lt;/a&gt; 這個知名小玩具，要感謝 &lt;a href=&quot;https://taipeihack.org/&quot;&gt;Taipei Hackerspace&lt;/a&gt; 和&lt;a href=&quot;http://www.raspberrypi.com.tw/&quot;&gt;台灣樹莓派&lt;/a&gt;出借場地和設備，超多小零件還有各種神器讓我可以複習電子電路一整天 (?)&lt;/p&gt;
+
+&lt;p&gt;Raspberry Pi 眾所皆知就是個小小小的迷你電腦，因為我一直想說「啊不就是一個迷你（效率很差）的小主機板來著嗎」就一直沒有很積極地去想玩，一直想說可能有一天剛好身上帶著三千塊經過天瓏就順便來買一塊吧的心情，結果要嘛是懶惰的直接網路訂書不然就是經過天瓏卻沒有三千塊於是就一直沒有擁有過 XD&lt;/p&gt;
+
+&lt;p&gt;然後神奇的講師 sosorry 簡直就是武器庫，滿桌的超齊全零件讓我覺得今天如果沒有做出個機關槍來都是浪費了啊啊啊…&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://fbcdn-sphotos-d-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10429431_4929153644193_2568793629564064896_n.jpg?oh=b4289fc95d7942c0f85c75505e514757&amp;amp;oe=55643E43&amp;amp;__gda__=1432850276_463c820512a82d5b067b3619f1558885&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;關於-gpio&quot;&gt;關於 GPIO&lt;/h1&gt;
+
+&lt;p&gt;sosorry 做了一個超完整圖解教學投影片&lt;a href=&quot;https://drive.google.com/file/d/0B2qc-F3WpYxWQUdaaVctSFd1cHM/view&quot;&gt;在這&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;身為一個麻瓜有一個超棒的好處就是可以無負擔的說我不會～然後到處煩高手。&lt;/p&gt;
+
+&lt;p&gt;Raspberry Pi 的第一次開機著實花了好多時間，主要是無法直接接上 Mac 使用，後來就只好外接螢幕鍵盤滑鼠快快打開連網，終於可以順利的在 Mac 上 ssh 進去，結束本回合。&lt;/p&gt;
+
+&lt;p&gt;然後開始了人生第一次和 &lt;a href=&quot;http://zh.wikipedia.org/wiki/GPIO&quot;&gt;GPIO&lt;/a&gt; 玩耍的過程。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/dxtIzOr.png&quot; alt=&quot;來源 - 台灣樹莓派文件&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;一開始嘗試接個電燈來亮亮是說這個電子電路圖就不行了，想當年因為覺得自己電學很爛所以選個力學的土木領域來念，沒想到後來完全不務正業，然後直到今天又回來還知識債，這就是人生。&lt;/p&gt;
+
+&lt;p&gt;我用的是 Raspberry Pi Model B+ ，有加強版的 GPIO 可供使用（一般是 26 根腳位，加強版有 40 根），每一根腳位都有自己的定義。線路的部分就不贅述，麵包板燈泡接地線和電阻，先來一個簡單的範例：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;接地線在第 6 根腳位&lt;/li&gt;
+  &lt;li&gt;另一根線在第 12 根腳位&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;把通路接好以後，就開始要寫軟體來控制腳位的行為，像是輸入還是輸出，高低電位或是寫值讀值等等。&lt;/p&gt;
+
+&lt;p&gt;sosorry 給的範例，或者說似乎滿多數的 Raspberry Pi 開發者應該都是用 Python 來寫的，沒關係說到 Python 姐也略懂，來個範例：&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/python&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;RPi.GPIO&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;GPIO&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setmode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BOARD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;   &lt;span class=&quot;c&quot;&gt;#實體腳位模式&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;LED_PIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LED_PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OUT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;#設定 LED 燈的腳位為輸出&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ON!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LED_PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HIGH&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;#對 LED 燈腳位輸出高電位&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;GPIO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cleanup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;GPIO 在 Python 裡面有個自己的 library，於是我們就可以藉由 import RPi.GPIO 來使用它，然後輸出高電位就可以看到 LED 燈亮起來了。&lt;/p&gt;
+
+&lt;h1 id=&quot;ruby-版本&quot;&gt;Ruby 版本&lt;/h1&gt;
+
+&lt;p&gt;Ruby 也有可以控制 GPIO 的 gem - &lt;a href=&quot;https://github.com/jwhitehorn/pi_piper&quot;&gt;pi_piper&lt;/a&gt;，這個名字超級明顯就是拿美劇矽谷(&lt;a href=&quot;http://www.imdb.com/title/tt2575988/&quot;&gt;Silicon Valley&lt;/a&gt;)裡面的虛擬產品 &lt;a href=&quot;http://www.piedpiper.com/#hello&quot;&gt;Pied Piper&lt;/a&gt; 來惡搞啊 XDDDD&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/442bK4A.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Anyway,  &lt;code class=&quot;highlighter-rouge&quot;&gt;gem install pi_piper&lt;/code&gt; 以後就可以開始使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;PiPiper&lt;/code&gt; 這個 module 來控制腳位行為了。&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'pi_piper'&lt;/span&gt;
+&lt;span class=&quot;kp&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;PiPiper&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;LED_PIN&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;18&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;led&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;PiPiper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Pin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;pin: &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;LED_PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;direction: :out&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;led&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;on&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;sleep&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;led&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;off&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;pi_piper 可以藉由 new 出一個 &lt;code class=&quot;highlighter-rouge&quot;&gt;Pin&lt;/code&gt; 物件，定義它的腳位與方向（輸入/輸出）以後，用 &lt;code class=&quot;highlighter-rouge&quot;&gt;on&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;off&lt;/code&gt; 方法來控制電位。&lt;/p&gt;
+
+&lt;p&gt;但是重要的是先前我在使用 Python 的 RPi.GPIO 來控制腳位時定義的是 &lt;em&gt;實體腳位 (BOARD mode)&lt;/em&gt; ，然而在 pi_piper 中 default 的腳位定義卻是 &lt;em&gt;Broadcom 腳位系統 (BCM mode)&lt;/em&gt; ，所以可以發現本來在 Python code 中我的 &lt;code class=&quot;highlighter-rouge&quot;&gt;LED_PIN&lt;/code&gt; 賦值是 12，在 Ruby code 裡面卻是 18。腳位轉換的表可以參考 &lt;a href=&quot;http://wiringpi.com/wp-content/uploads/2013/03/pins.pdf&quot;&gt;GPIO Pin Numbering Tables&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;pi_piper 看起來基本可定義的腳位行為都有，也可以用 &lt;code class=&quot;highlighter-rouge&quot;&gt;watch&lt;/code&gt; 的方法來寫開關或是 sensor，滿漂亮的 &amp;lt;3&lt;/p&gt;
+
+&lt;h1 id=&quot;c-版本&quot;&gt;C 版本&lt;/h1&gt;
+
+&lt;p&gt;當然 Ruby 長處不是硬體，只是可以用 Ruby 寫寫硬體 code 可以感覺滿開心的。晚上打網球的時候和朋友聊到這件事，卻得到突破盲點的一句話：「Python 很慢啊為什麼要用 Python 寫 IO」，回家以後我就忍不住去寫了 C 語言版本 XDDDD&lt;/p&gt;
+
+&lt;p&gt;我們的關鍵字是 &lt;code class=&quot;highlighter-rouge&quot;&gt;bcm2835&lt;/code&gt; ，download + compile 以後就可以 include 來使用了。&lt;/p&gt;
+
+&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;bcm2835.h&amp;gt;
+#define LED_PIN RPI_GPIO_P1_12
+&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bcm2835_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;perror&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Error&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;bcm2835_gpio_fsel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BCM2835_GPIO_FSEL_OUTP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;bcm2835_gpio_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HIGH&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;bcm2835_gpio_write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PIN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LOW&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;關於 Raspberry Pi 對 LED 燈的簡單操作入門就是這樣啦。&lt;/p&gt;
+
+&lt;h1 id=&quot;後記&quot;&gt;後記&lt;/h1&gt;
+
+&lt;p&gt;Taipei Hackerspace 是個很酷的地方，而且沒想到居居居居然是大學時代的朋友在經營，太神奇啦。&lt;/p&gt;
+</description>
+        <pubDate>Mon, 26 Jan 2015 17:49:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2015/01/26/raspberry-pi-with-ruby.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2015/01/26/raspberry-pi-with-ruby.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>為什麼 Swift 永遠不能取代 RubyMotion</title>
+        <description>&lt;p&gt;&lt;img class=&quot;center&quot; src=&quot;http://blog.thefrontiergroup.com.au/wp-content/uploads/2014/02/rubymotion.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;現在「&lt;a href=&quot;http://www.inside.com.tw/2010/11/13/mobile-first&quot;&gt;Mobile First&lt;/a&gt;」的風潮正烈，很多人誤解 Ruby 是一個 &lt;strong&gt;很適合開發網站的語言&lt;/strong&gt; – 當然是因為 Rails 是一個太過於全面的 Web 框架所致，其實 Ruby 能做的事情還很多，Ruby on Rails 的成功不應該被限制，成為 Ruby in Rails。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.rubymotion.com&quot;&gt;RubyMotion&lt;/a&gt; 便是 Ruby 在移動端的成功應用， &lt;strong&gt;同時&lt;/strong&gt; 可以 run 在 Android 與 iOS 系統上（其實還包括 OSX），著名的 &lt;a href=&quot;http://37signals.com&quot;&gt;37 signals&lt;/a&gt; 輔助團隊遠端工作的產品之一 Basecamp 的 App 便是由 RubyMotion 打造而成（其實默默的還有不少檯面下的），performance 也依然優秀。這歸功于 RubyMotion 是完全由 Ruby 編譯的二進位實作，而不是類似 &lt;a href=&quot;http://phonegap.com&quot;&gt;PhoneGap&lt;/a&gt; 把網頁包裝成 App… 當然很多時候效能的問題還是要回歸到開發人員的功力身上 XD&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;&lt;img class=&quot;right&quot; src=&quot;https://devimages.apple.com.edgekey.net/swift/images/swift-hero.png&quot; alt=&quot;Swift，一種編譯式編程語言，由蘋果公司推出-維基百科&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;在前幾日 WWDC 發表了新語言 &lt;a href=&quot;https://developer.apple.com/swift/&quot;&gt;Swift&lt;/a&gt; 之後，開發者圈一片瘋狂討論（嘿你這輩子有多少時間可以看著一門語言誕生）（我現在已經是 Swift 資深開發者了啊），畢竟有很多開發者都苦惱于原來 Objective-C 超繁瑣語法而裹足不前，但是 Swift 一出現，我很震撼的觀察到一個現象 –&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;「啊，好像 Python 似的。」「我看倒有點像 Ruby。」我說。「真像一塊塊 javascript。」一位外號叫「大食客」的同學緊接著說。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;沒錯，這真是太神奇了，看來 Apple 就是很想吸到各家語言的優秀開發者來更充實 App store，這招真的很強悍，因為每個人看了都有一種異樣的熟悉感（「你忘記我了嗎，我是阿明啊～」），這種熟悉感可以很快的驅使開發者&lt;a href=&quot;http://numbbbbb.github.io/the-swift-programming-language-in-chinese/&quot;&gt;開開心心學 Swift&lt;/a&gt;，而且真的&lt;a href=&quot;http://zh.lucida.me/blog/an-introduction-to-swift/&quot;&gt;很快&lt;/a&gt;  # 目前已知最快速懶人包。&lt;/p&gt;
+
+&lt;p&gt;RubyMotion 不會就此罷休的，既然語法很棒的優勢已經被 Swift 洗掉了，那還有什麼可以存在的理由呢？&lt;/p&gt;
+
+&lt;p&gt;Jack Watson-Hamblin 便立馬發佈了自己的看法 – “&lt;a href=&quot;http://blog.motioninmotion.tv/why-swift-will-never-replace-rubymotion?utm_source=rubyweekly&amp;amp;utm_medium=email&quot;&gt;Why Swift Will Never Replace RubyMotion&lt;/a&gt;”&lt;/p&gt;
+
+&lt;p&gt;以下是他的理由：&lt;/p&gt;
+
+&lt;h2 id=&quot;rubymotion-不僅僅是語法而是一個完整的工具鏈&quot;&gt;RubyMotion 不僅僅是語法，而是一個完整的工具鏈&lt;/h2&gt;
+
+&lt;p&gt;很多人會使用 RubyMotion 的理由就是因為可以不要用可怕的 Objective-C，而是自然的 Ruby 語法來開發，現在 Swift 殺出，為什麼還要用 RubyMotion 呢？&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;完整的 command line 工具鏈&lt;/strong&gt; - 你可以繼續用你愛用的 Editor/IDE/Terminal&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;那是 Ruby 啊！&lt;/strong&gt; - 換句話說你可以繼續用強大的 gem 來加速你的開發&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;RubyMotion 社群越來越強大活躍了&lt;/strong&gt;  &amp;lt;= 這點我比較存疑，因為很快的 Swift 也會活躍起來的…&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;rubymotion-跨平台&quot;&gt;RubyMotion 跨平台&lt;/h2&gt;
+
+&lt;p&gt;目前 RubyMotion 也做到了跨平台開發 - iOS/Android 不會受限於平台會是一個快速 bootstrap 想法的優秀工具。&lt;/p&gt;
+
+&lt;p&gt;當然我們可預見的是，由 Apple 推出的 Swift 絕無可能去親近 Android 平台，也就是說這會在實務上增加學習成本。&lt;/p&gt;
+
+&lt;h2 id=&quot;你們沒有人真的了解-swift&quot;&gt;你們沒有人真的了解 Swift&lt;/h2&gt;
+
+&lt;p&gt;這讓我想到一個朋友 &lt;a href=&quot;https://twitter.com/JuanitoFatas&quot;&gt;@Juanito Fatas&lt;/a&gt; 第一時間的笑話&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;一定有老闆招資深 Swift 工程師，要求 1-2 年經驗。&lt;/p&gt;&amp;mdash; Juanito Fatas (@JuanitoFatas) &lt;a href=&quot;https://twitter.com/JuanitoFatas/statuses/473538458804187137&quot;&gt;2014 6月 2日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;「現實的情況是，在 app store 上還沒有多少由 swift 開發的東西，除了 Guide 以外沒有人真正知道它」。Jack Watson-Hamblin 認為開發團隊們不一定會使用太新的技術來增加開發風險。&lt;/p&gt;
+
+&lt;p&gt;最後霸氣十足的結論就是，你們是在創造一個（對 RubyMotion 而言）根本不存在的對手（Swift）。&lt;/p&gt;
+
+&lt;p&gt;我個人是崇尚什麼情況下就使用什麼工具，而不會特別覺得什麼是「一定非用不可」的，例如今天你就算拿了&lt;a href=&quot;http://goo.gl/eTTqox&quot;&gt;阿泰爾之劍&lt;/a&gt;，叫你去釣魚也釣不起來啊（好爛的比喻）。&lt;/p&gt;
+
+&lt;p&gt;RubyMotion is good，因為 Ruby 的 gem 太強大了，可以用著自己喜歡的開發工具也會讓開發者很開心，但依然可以評估團隊狀況，就算使用 Swift 或者 Objective-C，Rails 還是很棒的 Web 框架，可以快速提供 App 所需要的後端資料 API。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;對了，這次 WWDC 裡面有一個各程式語言的分佈二維圖，真是戰意極強，不過我太震撼了忘記放在哪裡看到 XD…&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;2014-06-19 updated
+感謝 &lt;a href=&quot;https://twitter.com/wildjcrt&quot;&gt;@小蟹&lt;/a&gt; 把這張圖撿回來 XDDD&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;center&quot; src=&quot;https://pbs.twimg.com/media/BpJ_VJ_IcAAmRIv.png&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Fri, 13 Jun 2014 08:15:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/06/13/rubymotion-vs-swift.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/06/13/rubymotion-vs-swift.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Rails 開發者最常犯的十種錯誤</title>
+        <description>&lt;p&gt;Rails 是以 Ruby 語言寫就的，已經是最流行的 web application 開發框架之一。他的著名原則是「約定優於配置」，換而言之，Rails 假定我們會 follow 它的「標準」約定，例如說：命名、code 擺放的方式，或是更多其它有的沒的。如果我們是乖孩子照著做，所有的一切我們都不用特別擔心或思考太多細節，就馬上自己生出來了 – magic!&lt;/p&gt;
+
+&lt;p&gt;但是就像是煉金術師的等價交換，如此方便的代價則是，我們一旦「出軌」，馬上會翻車，而且會跑出「這到底怎麼回事啊」等級的問題，而且通常這類的問題都會不可思議地複雜。&lt;/p&gt;
+
+&lt;p&gt;Rails 雖然開發起來超級快速又方便，其實也很容易誤用，以下是 10 種容易發生的不良用法，順帶提醒如何避免發生出不可思議複雜等級的錯誤。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h2 id=&quot;1-放了太多邏輯在-controller-裡面&quot;&gt;#1: 放了太多邏輯在 controller 裡面&lt;/h2&gt;
+
+&lt;p&gt;這無疑是第一名，Rails 是 MVC(model, view, controller) 架構，在 Rails 中，我們總是會說 model 可以肥沒關係，但 controller 一定要瘦。但是時常我們會看到某人的 source code 在 controller 中放入了太多邏輯，與 view 相關的邏輯最好放入 &lt;code class=&quot;highlighter-rouge&quot;&gt;helper&lt;/code&gt; 裡面，而商務邏輯（或主要邏輯），自然是放入 &lt;code class=&quot;highlighter-rouge&quot;&gt;model&lt;/code&gt; 中，再將值藉由 controller 傳輸。&lt;/p&gt;
+
+&lt;p&gt;如果出現違反 &lt;a href=&quot;http://www.oodesign.com/single-responsibility-principle.html&quot;&gt;Single Responsibility Principle&lt;/a&gt; 的使用，會讓未來的改動更加麻煩而錯誤叢生。有時候我們會看到關於程式設計的 &lt;code class=&quot;highlighter-rouge&quot;&gt;cohesion(內聚)&lt;/code&gt; 與 &lt;code class=&quot;highlighter-rouge&quot;&gt;coupling(耦合)&lt;/code&gt; 等議題討論，我們喜歡的是 &lt;code class=&quot;highlighter-rouge&quot;&gt;增加內聚而減少耦合&lt;/code&gt; 來把事情單純化，所以掌握到把不相關的責任放進別的界面中，也就是說不要讓一個界面參雜（也就是耦合）到一個以上的責任。&lt;/p&gt;
+
+&lt;p&gt;所以說 controller 的責任是什麼呢？&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;處理 session 和 cookie&lt;/strong&gt; :  這或許也可以放進 &lt;code class=&quot;highlighter-rouge&quot;&gt;authentication/authorization&lt;/code&gt; 中處理，或是另外的 process 來處理。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;選擇 Modle&lt;/strong&gt; : 找出正確的 model object 並把 request 的參數傳遞進去。理想中應該要呼叫單一個 method，並且傳入一個 instance variable(實體變數) 以供 render 出 template 為 response 時使用。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Request 的參數管理&lt;/strong&gt; : 集合 request 的參數們，並且呼叫合適的 model 來傳遞他們。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Rendering/Redirecting&lt;/strong&gt; : Render 出結果（例如 html, xml, json 或其他），或是 redirect。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;遵守單一責任的原則，這是 Rails controller 中最基本的要求。&lt;/p&gt;
+
+&lt;h2 id=&quot;2-放了太多的邏輯在-view-裡面&quot;&gt;#2: 放了太多的邏輯在 view 裡面&lt;/h2&gt;
+
+&lt;p&gt;Rails 有自己 default 的 template engine - &lt;a href=&quot;http://apidock.com/ruby/ERB&quot;&gt;ERB&lt;/a&gt;，是一個可以產生可變內容的很棒的頁面產生方式。然而如果我們不小心的話很快就會因為滿滿的 HTML 和 Ruby code 混亂的混合下，發現管理或是維護都變得超複雜。請遵守 &lt;a href=&quot;http://en.wikipedia.org/wiki/Don%27t_repeat_yourself&quot;&gt;DRY(don’t repeat yourself)&lt;/a&gt; 原則。&lt;/p&gt;
+
+&lt;p&gt;以下是一個常出現的邏輯，可以有很多方式讓它變得更乾淨，以一個簡單的例子作為示範，考慮到我們常常需要判斷是目前的使用者是不是已經登入了，有一個 &lt;code class=&quot;highlighter-rouge&quot;&gt;current_user&lt;/code&gt; 的方法，然後會有一個 &lt;code class=&quot;highlighter-rouge&quot;&gt;if-else&lt;/code&gt;，最後 &lt;code class=&quot;highlighter-rouge&quot;&gt;end&lt;/code&gt; 像是這樣&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;h3&amp;gt;&lt;/span&gt;
+  Welcome,
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;% if current_user %&amp;gt;
+    &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;%= current_user.name %&amp;gt;
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;% else %&amp;gt;
+    Guest
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;% end %&amp;gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/h3&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;然後這樣的東西可能在 view 中會處處出現，更好的方式是 &lt;code class=&quot;highlighter-rouge&quot;&gt;current_user&lt;/code&gt; 應該 default 存在，不管使用者是不是已經登入了，如此一來可以讓這個 method 在 view 中出現得更加合理（有時候會是一個 nil object），舉例來說，我們或許可以定義一個  &lt;code class=&quot;highlighter-rouge&quot;&gt;current_user&lt;/code&gt; 在 &lt;code class=&quot;highlighter-rouge&quot;&gt;app/controllers/application_controller&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;``` ruby app/controllers/application_controller
+require ‘ostruct’&lt;/p&gt;
+
+&lt;p&gt;helper_method :current_user&lt;/p&gt;
+
+&lt;p&gt;def current_user
+  @current_user ||= User.find session[:user_id] if session[:user_id]
+  if @current_user
+    @current_user
+  else
+    OpenStruct.new(name: ‘Guest’)
+  end
+end&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+這樣我們就可以如此代換掉剛剛落落長的判斷，變成這樣
+
+
+``` html
+&amp;lt;h3&amp;gt;Welcome, &amp;lt;%= current_user.name %&amp;gt;&amp;lt;/h3&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;以下是推薦的做法們：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;用 &lt;code class=&quot;highlighter-rouge&quot;&gt;layouts&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;partial layout&lt;/code&gt; 適當的封裝一些會一直在頁面上重複使用的東西。&lt;/li&gt;
+  &lt;li&gt;用 &lt;code class=&quot;highlighter-rouge&quot;&gt;presenters/decorators&lt;/code&gt; 像是 &lt;a href=&quot;https://github.com/drapergem/draper&quot;&gt;Draper&lt;/a&gt; 這類型的 gem 來封裝 view-building 邏輯在一個 Ruby object 中，然後我們就可以適度的添加一些邏輯運算方法，否則很可能就不小心在 view 中放入過度的邏輯運算了。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;3-放了太多的邏輯在-model-裡面&quot;&gt;#3: 放了太多的邏輯在 model 裡面&lt;/h2&gt;
+
+&lt;p&gt;剛剛說到不要在 view 和 controller 中放進太多的邏輯，所以說唯一剩下可以放入所有邏輯的地方，不就只剩下 model 了嗎？&lt;/p&gt;
+
+&lt;p&gt;嗯，不全然是這樣的啦。&lt;/p&gt;
+
+&lt;p&gt;很多開發者犯了這個錯誤，把 &lt;code class=&quot;highlighter-rouge&quot;&gt;一切&lt;/code&gt; 都放入了他們的 &lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord&lt;/code&gt; ，最後導致了 mongo files 不僅僅違反了 single responsibility principle ，也成為了維護上的夢魘。&lt;/p&gt;
+
+&lt;p&gt;功能上的，例如說 email 通知，連接外部的服務，轉換資料格式這類型的事情並不是 ActiveRecord 的責任，ActiveRecord 應該做到它最核心的任務 – &lt;strong&gt;尋找資料庫中的資料&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;所以說如果這個邏輯他不應該被放在 view 裡面，又不應該被放在 controller 裡面，也不應該被放在 model 裡面的時候，到底應該何去何從呢？&lt;/p&gt;
+
+&lt;p&gt;答案是放進 &lt;a href=&quot;http://blog.larrylv.com/how-to-refactor-rails-project/&quot;&gt;plain old Ruby objects (POROs)&lt;/a&gt;。有了像是 Rails 這樣一個（太過於）全面的框架，初階開發者往往不願意在框架以外的地方建立自己的 classes，但是把邏輯抽出到 POROs 往往可以避免 models 變得過於臃腫複雜。隨著 POROs，我們可以把像是 email 通知或是或是 API 的交互轉換封裝到他們各自的 class，而非放在一個 ActiveRecord 的 model 中。&lt;/p&gt;
+
+&lt;p&gt;抱持這個原則，一般來說，我們的 model 中只能有以下的邏輯：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord&lt;/code&gt; 相關&lt;/strong&gt; : 像是資料表關聯或是驗證等等&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;簡單的改善方法&lt;/strong&gt; : 例如說封裝一些有用的 attributes，並且儲存在資料庫中。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Access wrappers&lt;/strong&gt; : 隱藏外部的 model 資訊 - 例如說把 &lt;code class=&quot;highlighter-rouge&quot;&gt;first_name&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;last_name&lt;/code&gt; 封裝成 &lt;code class=&quot;highlighter-rouge&quot;&gt;full_name&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;複雜的 query&lt;/strong&gt; : 例如說，很複雜的 &lt;code class=&quot;highlighter-rouge&quot;&gt;where&lt;/code&gt; - 一般來說，我們都不應該用在 model 以外的地方使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;where&lt;/code&gt; 方法，或是 query-building&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;4-把泛用的-helper-class-搞得像垃圾堆&quot;&gt;#4: 把泛用的 helper class 搞得像垃圾堆&lt;/h2&gt;
+
+&lt;p&gt;這個錯誤的發生其實是 #3 的錯誤推論，像上面所說的，Rails 很強調把「命名」的零件放在他應該放的地方（是說 model, view 和 controller）。但是有時候我們真的應該給予不屬於這三處的零件更好的定義。&lt;/p&gt;
+
+&lt;p&gt;Rails 生成器會很方便的建立出一個 helper 目錄，和一個新的 helper class 在我們創建的每一個新的 resource，藉由這樣，我們可以使用很多不適合于 model, view 和 controller 的功能。這真的是很誘惑人。&lt;/p&gt;
+
+&lt;p&gt;雖然 Rails 很明確的定出了 MVC 為主要核心，好像也沒有特別阻止我們作出自己的 class，然後加入適合的目錄來放這些 code。當我們有額外需要的功能，應該先想想把哪些方法好好的命名並且放在一起，避免把 helper 變成一個垃圾場。&lt;/p&gt;
+
+&lt;h2 id=&quot;5-用太多-gem&quot;&gt;#5: 用太多 gem&lt;/h2&gt;
+
+&lt;p&gt;Ruby and Rails 支援非常豐富的 gem 生態系，收集提供了所有開發者能想到的東西。這對於想要快速地建立一個複雜 application 是極為有利的，但是如同煉金術師的等價交換，每用一個 gem 都付出了相對的學習成本，有許多 application 的 gemfile 根本就是不成比例的臃腫。&lt;/p&gt;
+
+&lt;p&gt;這樣會導致幾個問題出現：過度使用 gem 多於這個 application 所需要的份量一定會降低性能，除了使用者體驗下降，也會消耗 server 的記憶體，增加營運成本。也需要更長的時間來啟動 Rails application，開發速度變慢，自動化測試的時間也更長（太慢的 test 被執行的次數一定是更少的，這是 &lt;strong&gt;鐵律&lt;/strong&gt;）&lt;/p&gt;
+
+&lt;p&gt;要知道我們放入的每一個 gem 或多或少會有其他依賴的 gem 一起被加進來，依此類推，增加一個 gem 會帶來複利程度的影響。舉例來說，加入一個 &lt;code class=&quot;highlighter-rouge&quot;&gt;rails_admin&lt;/code&gt; gem 會一併引入它依賴的其他 11 個 gem，然後我們在 install 這個 Rails application 的時間就增加了大概 10%。（可怕吧）&lt;/p&gt;
+
+&lt;p&gt;一個乾淨的 Rails 4.1.0 產生時，在原生的 &lt;code class=&quot;highlighter-rouge&quot;&gt;gemfile.lock&lt;/code&gt; 中就已經含有 43 個 gem，顯然不僅在 &lt;code class=&quot;highlighter-rouge&quot;&gt;gemfile&lt;/code&gt; 中所寫的，也就是說標準 Rails 的 gem 也儘量不引用互相依賴的 gem。&lt;/p&gt;
+
+&lt;p&gt;仔細考慮添加進的每一個 gem，加上它的成本是否值得。例如某些開發者隨意的放了一個 rails_admin gem，因為很方便，但它卻也比不上某些花俏的 database browsing tool。就算我們的 application 需要給予 administator 特殊權限，自己的權限自己寫會比隨便放入這種 gem 來得更好。&lt;/p&gt;
+
+&lt;h2 id=&quot;6-忽視-log&quot;&gt;#6: 忽視 log&lt;/h2&gt;
+
+&lt;p&gt;雖然大多數開發者都知道 development 和 production 環境中提供了 log files，但是往往不是太重視這些訊息。雖然有一些 application 依賴像是 &lt;a href=&quot;https://www.honeybadger.io&quot;&gt;Honeybadger&lt;/a&gt; 和 &lt;a href=&quot;http://newrelic.com&quot;&gt;New Relic&lt;/a&gt; 這種 production monitor，但是重視 developing 與 testing log 也是很重要的事情。&lt;/p&gt;
+
+&lt;p&gt;Rails 有很多神奇魔法，特別是 model，在我們的 model 中定義 associations 讓資料庫關聯變得很容易，所有的 SQL syntax 就這樣生成了，這真的很棒，但是我們怎麼知道這些 SQL syntax 有沒有效率呢？&lt;/p&gt;
+
+&lt;p&gt;著名的例子就是 &lt;a href=&quot;http://www.toptal.com/ruby-on-rails#nPlus1Queries&quot;&gt;N + 1 query 問題&lt;/a&gt;，雖然很好理解，但是唯一真的能觀察出它正在發生的方法只有藉由觀察我們的 log 檔。&lt;/p&gt;
+
+&lt;p&gt;例如下面有一組典型的 blog query: 我們要找出所選的 posts 的所有 comments&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;comments_for_top_three_posts&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;posts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;limit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;flat_map&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;comments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_a&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;當我們呼叫這個 method，我們會看到類似以下的 log，在單一的查詢後得到三個 posts，然後三個 posts 分別都只是為了找出各自相關的 comments&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Started GET &quot;/posts/some_comments&quot; for 127.0.0.1 at 2014-05-20 20:05:13 -0700
+Processing by PostsController#some_comments as HTML
+  Post Load (0.4ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot; LIMIT 3
+  Comment Load (5.6ms)  ELECT &quot;comments&quot;.* FROM &quot;comments&quot; WHERE &quot;comments&quot;.&quot;post_id&quot; = ?  [[&quot;post_id&quot;, 1]]
+  Comment Load (0.4ms)  SELECT &quot;comments&quot;.* FROM &quot;comments&quot; WHERE &quot;comments&quot;.&quot;post_id&quot; = ?  [[&quot;post_id&quot;, 2]]
+  Comment Load (1.5ms)  SELECT &quot;comments&quot;.* FROM &quot;comments&quot; WHERE &quot;comments&quot;.&quot;post_id&quot; = ?  [[&quot;post_id&quot;, 3]]
+  Rendered posts/some_comments.html.erb within layouts/application (12.5ms)
+Completed 200 OK in 581ms (Views: 225.8ms | ActiveRecord: 10.0ms)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其實 &lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord&lt;/code&gt; 可以使用預載來減少 query 次數，通過調用 Arel ( &lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord::Relation&lt;/code&gt; ) 的 method 來建立 object。使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;includes&lt;/code&gt; ， &lt;code class=&quot;highlighter-rouge&quot;&gt;ActiveRecord&lt;/code&gt; 確保所有指定的 associations 會先被預載，然後我們就可以使用最少的 query 次數：&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;comments_for_top_three_posts&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;posts&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;includes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:comments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;limit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;flat_map&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;comments&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_a&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;改成上面的查詢方法以後，我們就可以發現 log 變成&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Started GET &quot;/posts/some_comments&quot; for 127.0.0.1 at 2014-05-20 20:05:18 -0700
+Processing by PostsController#some_comments as HTML
+  Post Load (0.5ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot; LIMIT 3
+  Comment Load (4.4ms)  SELECT &quot;comments&quot;.* FROM &quot;comments&quot; WHERE&quot;comments &quot;.&quot;post_id&quot; IN (1, 2, 3)
+  Rendered posts/some_comments.html.erb within layouts/application (12.2ms)
+Completed 200 OK in 560ms (Views: 219.3ms | ActiveRecord: 5.0ms)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;是不是更加有效率呢？&lt;/p&gt;
+
+&lt;p&gt;N + 1 查詢問題只是其中一個顯著的例子，告訴我們應該更重視 log 找出效率低落的原因。而在開發過程中重視 log 可以幫助我們更快地找出這些病灶。在開發時數據量很小，或許不容易發現，等到資料量的增長，這類型的問題會導致 application 越來越慢。&lt;/p&gt;
+
+&lt;p&gt;如果我們發現我們後來塞了太多的過期 log，也可以這樣&lt;a href=&quot;http://rubyjunky.com/cleaning-up-rails-4-production-logging.html&quot;&gt;打掃一下&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;7-缺乏自動化測試&quot;&gt;#7: 缺乏自動化測試&lt;/h2&gt;
+
+&lt;p&gt;Ruby on Rails 提供了強大的自動化測試功能，很多 Rails 開發者使用 TDD 或是 BDD，加上強大的測試框架例如 &lt;a href=&quot;https://www.relishapp.com/rspec/&quot;&gt;RSpec&lt;/a&gt; 或是 &lt;a href=&quot;http://cukes.info&quot;&gt;Cucumber&lt;/a&gt; 的 gem 來進行複雜的測試。&lt;/p&gt;
+
+&lt;p&gt;儘管 Rails 有這麼多測試工具，沒想到還是不少開發團隊並不注重測試。雖然測試的覆蓋率或是全面性應該如何已經引發了許多爭議(&lt;a href=&quot;http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html&quot;&gt;DHH: TDD is dead&lt;/a&gt;)，但無論如何很清楚的事實是，每一個 application 至少要有一定的自動化測試。&lt;/p&gt;
+
+&lt;p&gt;經驗法則是，至少有個 high-level 的 controller spec 去測試一個 action，未來開發者很有可能要拓展或維護，或升級 Ruby/Rails 的版本，這時候有相當的 spec 可以幫助他們更明確工作內容，其中一個好處是，起碼我們不會漏掉原本有的功能。&lt;/p&gt;
+
+&lt;h2 id=&quot;8-區隔第三方服務&quot;&gt;#8: 區隔第三方服務&lt;/h2&gt;
+
+&lt;p&gt;Rails 的第三方服務一般來說都可以非常輕易地整合他們的功能，以 gem 的形式加進我們的 application，也讓我們可以呼叫相關的 API。但是當我們的 gem 壞了或是開始變得很慢怎麼辦？&lt;/p&gt;
+
+&lt;p&gt;為了避免這個情況，我們應該把這些服務移動到像是背景執行的形式讓它們更具彈性，而非照平常的方式直接調用。而在 Rails 中為了這個目的而誕生的 gem 包含：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/collectiveidea/delayed_job&quot;&gt;Delayed job&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/resque/resque&quot;&gt;Resque&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://sidekiq.org/&quot;&gt;Sidekiq&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;萬一，某些背景排程執行的程序失敗了，我們必須確保 application 有完整的錯誤處理與故障轉移的流程，而當第三方的 gem 壞掉的時候，我們也應該移除 gem 以後重新測試 application 來驗證沒有這個 gem 的話，服務仍能啟動。&lt;/p&gt;
+
+&lt;h2 id=&quot;9-與既有-database-緊密-migrate&quot;&gt;#9: 與既有 database 緊密 migrate&lt;/h2&gt;
+
+&lt;p&gt;Rails 的資料庫遷移(migration) 機制允許我們新增或刪除資料庫裡面的表或是欄位，並且這些 migration 是以連續的方式存在(以時間戳命名)，若以一個淨空的資料庫開始開發，這是一個很棒的方式，可以同步我們的 code 與資料庫的 schema。&lt;/p&gt;
+
+&lt;p&gt;剛開始的時候，這是好事，然而隨著開發時間的推移，重新 migrate 一個資料庫就需要一段相當長的時間了。有時候錯位或亂序，或是更恐怖的是有另外一個 Rails application 同時也在使用這個資料庫呢？&lt;/p&gt;
+
+&lt;p&gt;Rails 通常會在 &lt;code class=&quot;highlighter-rouge&quot;&gt;db/schema.rb&lt;/code&gt; 中呈現目前資料庫當前的狀態，而 &lt;code class=&quot;highlighter-rouge&quot;&gt;schema.rb&lt;/code&gt; 甚至可以在沒有任何 migration files 的狀況下生成資料庫 schema，像是運行&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rake db:schema:dump
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;一個常見的錯誤就是對既有資料庫試圖去做 migrate，而正確的方法應該是更動 &lt;code class=&quot;highlighter-rouge&quot;&gt;schema.rb&lt;/code&gt; 使之相應。&lt;/p&gt;
+
+&lt;p&gt;當 migration 已經變得很龐大，要花上很長的時間來 migrate，或是因為某些因素沒有辦法正確的 create database，我們就應該勇敢地去清理舊的 migrations，轉存成新的 schema，然後從那裡繼續下去。建立一個新的開發環境的時候我們應該用&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rake db:schema:load
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;而不是多數開發者依賴的&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也可以參考 &lt;a href=&quot;http://guides.rubyonrails.org/migrations.html#schema-dumping-and-you&quot;&gt;Rails Guide&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;10-在-repo-裡面放入敏感資訊&quot;&gt;#10: 在 repo 裡面放入敏感資訊&lt;/h2&gt;
+
+&lt;p&gt;Rails 的設計已經包含了基本的安全性來避免攻擊，有一些是經由 secrete token 以便安全的在瀏覽器中傳遞 sessions。這些都已經存在 &lt;code class=&quot;highlighter-rouge&quot;&gt;config/secrets.yml&lt;/code&gt; 之中，他會讀取環境變數與 production server 來產生 token，較舊版本的 Rails 會把這個 token 放在 &lt;code class=&quot;highlighter-rouge&quot;&gt;config/initializers/secret_token.rb&lt;/code&gt; 裡面，或是 &lt;code class=&quot;highlighter-rouge&quot;&gt;config/database.yml&lt;/code&gt; 。但是這些檔案常常不小心就被 commit 到版本控制裡面…&lt;/p&gt;
+
+&lt;p&gt;一旦不小心被有心人看到了，誰都可以去我們的資料庫逛逛，帶走一些敏感的資料例如使用者資訊。&lt;/p&gt;
+
+&lt;p&gt;所以，我們也應該 check 一下版本控制的 config 檔案（如果你使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;git&lt;/code&gt; ，就看看你的 &lt;code class=&quot;highlighter-rouge&quot;&gt;.gitignore&lt;/code&gt; 吧），必須忽略掉這類型檔案與 token，你的 production server 應該要有自己的 token，或是改由像是 &lt;a href=&quot;https://github.com/bkeepers/dotenv&quot;&gt;dotenv&lt;/a&gt; 這類型的 gem 來生成。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Rails 的強大與魔法會常常不小心讓人忽視了自己開發時潛在的缺陷，我們應該要時常確保這些 code 容易擴展或是維護，因為專案是會一直長大的。&lt;/p&gt;
+
+&lt;p&gt;開發者不僅要快速建立 application，更需要注意的應該是去發現為什麼程式變得更慢、更不可靠甚至是更不安全的問題。去研究 Rails 框架是很重要的，可以幫助我們理解整體的架構、設計，和開發過程產生的 issues。這可以幫助開發者生產出更高水準的 code。&lt;/p&gt;
+
+&lt;p&gt;更詳細的討論可以看&lt;a href=&quot;http://www.toptal.com/ruby-on-rails/top-10-mistakes-that-rails-programmers-make&quot;&gt;這裡&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 10 Jun 2014 11:00:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/06/10/10-mistakes-for-rails.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/06/10/10-mistakes-for-rails.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>給 Rails developer 看的 Angular + Rails 起步走</title>
+        <description>&lt;p&gt;學 Angular 其實沒有想像中的難，官方的&lt;a href=&quot;https://docs.angularjs.org/api&quot;&gt;文件&lt;/a&gt;就很完整了。&lt;/p&gt;
+
+&lt;p&gt;只是地獄都在你想要結合兩種科技的時候產生。&lt;/p&gt;
+
+&lt;p&gt;以下教學是假設你已經熟悉 Rails, 不過 AngularJS 還好的狀態（不一定要會）。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h1 id=&quot;產生一個-rails-專案&quot;&gt;產生一個 Rails 專案&lt;/h1&gt;
+
+&lt;p&gt;現在用一個一個有 CRUD (Create, Read, Update and Delete - 新增編輯刪除和讀取) 功能的餐廳 web application，不過其實在這裡我們只會真的用到 CR 的部分，UD 是不會用到的。&lt;/p&gt;
+
+&lt;p&gt;我們先把這個專案取名叫做 Restauranteur&lt;/p&gt;
+
+&lt;p&gt;接下來我會用 &lt;a href=&quot;http://www.postgresql.org&quot;&gt;PostgreSQL&lt;/a&gt; 和 &lt;a href=&quot;http://rspec.info&quot;&gt;RSpec&lt;/a&gt; 繼續下去。&lt;/p&gt;
+
+&lt;h1 id=&quot;開始&quot;&gt;開始！&lt;/h1&gt;
+
+&lt;p&gt;先創造一個專案&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rails new restauranteur --database&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;postgresql --skip-test-unit
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果你有用 &lt;a href=&quot;http://pow.cx&quot;&gt;Pow&lt;/a&gt;，那現在可以把專案加進去&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ln -s &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;你的路徑]/restauranteur ~/.pow/restauranteur
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在 PostgreSQL 中創一個新人物來用專案的資料庫&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;createuser -P -s -e restauranteur
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;把 RSpec 放進 gemfile 中&lt;/p&gt;
+
+&lt;p&gt;``` ruby gemfile
+gem “rspec-rails”, “~&amp;gt; 2.14.0”&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+安裝 RSpec
+
+
+``` bash
+$ bundle install
+$ rails g rspec:install
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;新建 database&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rake db:create
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;建立-restauranteur-的-model&quot;&gt;建立 Restauranteur 的 model&lt;/h1&gt;
+
+&lt;p&gt;現在基本的專案已經 setup 了，接下來建立第一個 resource: Restaurant，先給他唯一的 attribute(屬性) - name, 一個 String(字串)&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rails generate scaffold restaurant name:string
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;雖然已經用 scaffold 偷吃步噴出了一堆 code，為了維持 Rails 的好氣味，我們在 migration file 做點小加工，保證 name 是唯一的&lt;/p&gt;
+
+&lt;p&gt;``` ruby db/migrate/[timestamp]_create_restaurants.rb
+class CreateRestaurants &amp;lt; ActiveRecord::Migration
+  def change
+    create_table :restaurants do |t|
+      t.string :name&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  t.timestamps
+end
+
+# Add the following line
+add_index :restaurants, :name, unique: true   end end ```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;OK, let’s migrate it&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;rake db:migrate
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;同時，我們開始寫相關的 spec 來驗證確保我們無法新增不合法的 restaurants，例如說我們剛剛在 migration 中增加的 name is unique&lt;/p&gt;
+
+&lt;p&gt;``` ruby spec/models/restaurant_spec.rb
+require ‘spec_helper’&lt;/p&gt;
+
+&lt;p&gt;describe Restaurant do
+  before do
+    @restaurant = Restaurant.new(name: “Momofuku”)
+  end&lt;/p&gt;
+
+&lt;p&gt;subject { @restaurant }&lt;/p&gt;
+
+&lt;p&gt;it { should respond_to(:name) }
+  it { should be_valid }&lt;/p&gt;
+
+&lt;p&gt;describe “when name is not present” do
+    before { @restaurant.name = “ “ }
+    it { should_not be_valid }
+  end&lt;/p&gt;
+
+&lt;p&gt;describe “when name is already taken” do
+    before do
+      restaurant_with_same_name = @restaurant.dup
+      restaurant_with_same_name.name = @restaurant.name.upcase
+      restaurant_with_same_name.save
+    end&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;it { should_not be_valid }   end end ```
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其實這裡還可以用 &lt;a href=&quot;https://github.com/stympy/faker&quot;&gt;faker&lt;/a&gt; 和 &lt;a href=&quot;https://github.com/thoughtbot/factory_girl&quot;&gt;factory_girl&lt;/a&gt; 把 RSpec unit test 寫得更漂亮，但我想要下次有空的時候再好好整理一下測試部分的筆記 XD&lt;/p&gt;
+
+&lt;p&gt;跑測試吧。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;bundle &lt;span class=&quot;nb&quot;&gt;exec &lt;/span&gt;rspec spec/models/restaurant_spec.rb
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;你會發現噴出錯誤了，這是因為雖然「資料庫」已經把 name 欄位設為 unique，但 model 中卻沒有相應的驗證，雙重保証是好習慣，讓我們增加一個新的驗證讓這個測試通過。&lt;/p&gt;
+
+&lt;p&gt;``` ruby app/models/restaurant.rb
+class Restaurant &amp;lt; ActiveRecord::Base
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
+end&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+Pass了，看起來不錯，繼續往下走。
+
+
+# 把 AnjularJS 混合進去
+
+
+當然不可能在這個文章一口氣突然也讓你變成 AngularJS 的資深開發者 XD
+
+
+在這裏，我們是以 &quot;Hello world&quot; 等級的 AngularJS 放在這個 Rails application 裡面，然後可以在這個 restaurant 中做到 CRUD。
+
+
+這樣的 &quot;Hello world&quot; 其實不必依賴任何特定的 Rails resource，可以想像成 Rails 提供了後端 API，然後創造一個 StaticPage 給 AngularJS 大展身手。
+
+
+## 創造 controller
+
+
+``` bash
+$ rails generate controller static_pages index
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;這裡的 root route (根路徑) 目前還只是 “Welcome to Rails” 那個 default 頁，現在我們把它設定成 StaticPageController 的 index 頁&lt;/p&gt;
+
+&lt;p&gt;``` ruby config/routes.rb
+Restauranteur::Application.routes.draw do
+  # Add the following line
+  root ‘static_pages#index’
+end&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+## 安裝 AngularJS
+
+
+1. 為了要可以測試，我們需要一個叫做 ```angular-mocks.js``` 的檔名，雖然說 AngularJS 的文件中並沒有提到，但是我們需要。
+2. 在最新的 [AngularJS tutorial](https://docs.angularjs.org/tutorial) 中，如果我沒有記錯， ```angular.js``` 與 ```angular-mocks.js``` 會有兼容性問題。我知道 1.1.5 版中可以，所以接下來即便是有最新的穩定版，這裡還是使用 1.1.5 版，當然這件事情應該會隨著時間流逝做更新的 :)
+
+
+[下載](https://code.angularjs.org) ```angular.js``` 與 ```angular-mocks.js``` 然後把這些放進 ```app/assets/javascripts``` 下面。
+
+
+``` bash
+$ wget http://code.angularjs.org/1.1.5/angular.js http://code.angularjs.org/1.1.5/angular-mocks.js
+$ mv angular* app/assets/javascripts
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;加進-asset-pipeline-中&quot;&gt;加進 asset pipeline 中&lt;/h2&gt;
+
+&lt;p&gt;現在我們要告訴 Rails 說，我們的 project 加進了 AngularJS，我們要確保 Rails 在運行的過程中會載入。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;注意，把你的 &lt;code class=&quot;highlighter-rouge&quot;&gt;Turbolinks&lt;/code&gt; 關掉，他們互斥。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;``` javascript app/assets/javascripts/application.js
+// This is a manifest file that’ll be compiled into application.js, which will include all the files
+// listed below.
+//
+// Any JavaScript/Coffee file within this directory, lib/assets/javascripts, vendor/assets/javascripts,
+// or vendor/assets/javascripts of plugins, if any, can be referenced here using a relative path.
+//
+// It’s not advisable to add code directly here, but if you do, it’ll appear at the bottom of the
+// compiled file.
+//
+// Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
+// about supported directives.
+//
+//= require jquery
+//= require jquery_ujs&lt;/p&gt;
+
+&lt;p&gt;// Add the following two lines
+//= require angular
+//= require main&lt;/p&gt;
+
+&lt;p&gt;//= require_tree .&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+## 製作 Layout
+
+
+加入 ng-app 和 ng-view，是宣告 Angular application 在這個頁面上的第一步，也要注意把 turbolinks 相關的 flash mention 移掉
+
+
+``` html app/views/layouts/application.html.erb
+&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;html&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-app=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;restauranteur&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Restauranteur&lt;span class=&quot;nt&quot;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;%= stylesheet_link_tag    &quot;application&quot;, media: &quot;all&quot; %&amp;gt;
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;%= javascript_include_tag &quot;application&quot; %&amp;gt;
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;%= csrf_meta_tags %&amp;gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-view&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;%= yield %&amp;gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;創造一個-angular-controller&quot;&gt;創造一個 Angular controller&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;mkdir -p app/assets/javascripts/angular/controllers
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;現在我們來做一個 AngularJS 的 controller file，叫做 “home controller”，而在 AngularJS 的世界裡約定俗成的 controller file name 會是 &lt;code class=&quot;highlighter-rouge&quot;&gt;Ctrl&lt;/code&gt; 結尾，所以我們的檔案名稱為 &lt;code class=&quot;highlighter-rouge&quot;&gt;app/assets/javascripts/angular/controllers/HomeCtrl.js.coffee&lt;/code&gt; :&lt;/p&gt;
+
+&lt;p&gt;```coffeescript app/assets/javascripts/angular/controllers/HomeCtrl.js.coffee
+@restauranteur.controller ‘HomeCtrl’, [‘$scope’, ($scope) -&amp;gt;
+  # Notice how this controller body is empty
+]&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+## 創造一個 Angular route
+
+
+現在我們要讓 ```HomeCtrl``` 成為我們的 &quot;default page&quot;，在此我們定義我們的路由在 ```app/assets/javascripts/main.js.coffee```
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+// #=&amp;gt; 這是宣告一個 angular app
+@restauranteur = angular.module('restauranteur', [])
+
+// #=&amp;gt; 這些是定義根目錄(otherwise 都回到這裡)
+@restauranteur.config(['$routeProvider', ($routeProvider) -&amp;gt;
+  $routeProvider.
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;創造一個-angular-template&quot;&gt;創造一個 Angular template&lt;/h2&gt;
+
+&lt;p&gt;我們還是需要有個地方來放我們的 angular templates，就放在 &lt;code class=&quot;highlighter-rouge&quot;&gt;public/templates&lt;/code&gt; 底下，當然你也可以放在任何你喜歡的地方&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;mkdir public/templates
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;新增一個 &lt;code class=&quot;highlighter-rouge&quot;&gt;public/templates/home.html&lt;/code&gt; 隨便寫點字，待會應該要可以在瀏覽器上看到&lt;/p&gt;
+
+&lt;p&gt;``` html public/templates/home.html
+This is the home page.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+好了，現在打開 [http://restauranteur.dev/](http://restauranteur.dev/) 或是 [http://localhost:3000/](http://restauranteur.dev/) 你應該要可以看見 ```home.html``` 裡面的內容了。
+
+
+## 一個 data binding 的範例
+
+
+這說起來滿有趣的，但也有點討人厭，我們來真的送些東西進去吧，像這樣編輯
+
+
+``` javascript app/assets/angular/controllers/HomeCtrl.js.coffee
+@restauranteur.controller 'HomeCtrl', ['$scope', ($scope) -&amp;gt;
+  $scope.foo = 'bar'
+]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;這有點像是在 Rails 的 controller 中寫 &lt;code class=&quot;highlighter-rouge&quot;&gt;@foo = &quot;bar&quot;&lt;/code&gt; ，我們也可以把這個 &lt;code class=&quot;highlighter-rouge&quot;&gt;foo&lt;/code&gt; 值插進  template &lt;code class=&quot;highlighter-rouge&quot;&gt;home.html&lt;/code&gt; 中，用兩個大括號：&lt;/p&gt;
+
+&lt;figure class=&quot;code-highlight-figure&quot;&gt;&lt;figcaption class=&quot;code-highlight-caption&quot;&gt;&lt;span class=&quot;code-highlight-caption-title&quot;&gt;home.html&lt;/span&gt;&lt;/figcaption&gt;&lt;div class=&quot;code-highlight&quot;&gt;&lt;pre class=&quot;code-highlight-pre&quot;&gt;&lt;div data-line=&quot;1&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;Value of &quot;foo&quot;: &amp;#x7b;&amp;#x7b;foo&amp;#x7d;&amp;#x7d;&lt;/div&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;開始實戰&quot;&gt;開始實戰&lt;/h1&gt;
+
+&lt;p&gt;我們已經做好一個超簡單的 Hello world 級 application, 接下來就製作一個完全涵括 CRUD 的 application，其實也沒有難很多。&lt;/p&gt;
+
+&lt;h2 id=&quot;給一些種子資料&quot;&gt;給一些種子資料&lt;/h2&gt;
+
+&lt;p&gt;在 templates 下面新增一個 restaurants 資料夾&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;mkdir public/templates/restaurants
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;首先來做一個 index page:&lt;/p&gt;
+
+&lt;figure class=&quot;code-highlight-figure&quot;&gt;&lt;figcaption class=&quot;code-highlight-caption&quot;&gt;&lt;span class=&quot;code-highlight-caption-title&quot;&gt;public/templates/restaurants/index.html&lt;/span&gt;&lt;/figcaption&gt;&lt;div class=&quot;code-highlight&quot;&gt;&lt;pre class=&quot;code-highlight-pre&quot;&gt;&lt;div data-line=&quot;1&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/#&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;index&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;2&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;ul&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-repeat=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;restaurant in restaurants&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;3&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;  &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-click=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;viewRestaurant(restaurant.id)&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&amp;#x7b;&amp;#x7b; restaurant.name &amp;#x7d;&amp;#x7d;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;4&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/figure&gt;
+
+&lt;p&gt;然後製作一個對應的 controller&lt;/p&gt;
+
+&lt;p&gt;``` javascript app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee
+@restauranteur.controller ‘RestaurantIndexCtrl’, [‘$scope’, ‘$location’, ‘$http’, ($scope, $location, $http) -&amp;gt;
+  $scope.restaurants = []
+  $http.get(‘./restaurants.json’).success((data) -&amp;gt;
+    $scope.restaurants = data
+  )
+]&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+接下來，我們調整一下路由
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+@restauranteur = angular.module('restauranteur', [])
+
+@restauranteur.config(['$routeProvider', ($routeProvider) -&amp;gt;
+  $routeProvider.
+    when('/restaurants', {
+      templateUrl: '../templates/restaurants/index.html',
+      controller: 'RestaurantIndexCtrl'
+    }).
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;最後，我們可以到 &lt;code class=&quot;highlighter-rouge&quot;&gt;/#/restaurants/&lt;/code&gt; 並且應該可以看到餐廳的清單。&lt;/p&gt;
+
+&lt;h1 id=&quot;新增第一個測試&quot;&gt;新增第一個測試&lt;/h1&gt;
+
+&lt;p&gt;然後我們要增加 JS 的測試資料夾&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir spec/javascripts
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;寫下 spec&lt;/p&gt;
+
+&lt;p&gt;``` javascript spec/javascripts/controllers_spec.js.coffee
+describe “Restauranteur controllers”, -&amp;gt;
+  beforeEach module(“restauranteur”)&lt;/p&gt;
+
+&lt;p&gt;describe “RestaurantIndexCtrl”, -&amp;gt;
+    it “should set restaurants to an empty array”, inject(($controller) -&amp;gt;
+      scope = {}
+      ctrl = $controller(“RestaurantIndexCtrl”,
+        $scope: scope
+      )
+      expect(scope.restaurants.length).toBe 0
+    )&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+新增 config
+
+
+``` javascript spec/javascripts/restauranteur.conf.js
+module.exports = function(config) {
+  config.set({
+    basePath: '../..',
+
+    frameworks: ['jasmine'],
+
+    autoWatch: true,
+
+    preprocessors: {
+      '**/*.coffee': 'coffee'
+    },
+
+    files: [
+      'app/assets/javascripts/angular.js',
+      'app/assets/javascripts/angular-mocks.js',
+      'app/assets/javascripts/main.js.coffee',
+      'app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee',
+      'app/assets/javascripts/angular/*',
+      'spec/javascripts/*_spec.js.coffee'
+    ]
+  });
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;安裝 &lt;a href=&quot;https://www.npmjs.org/package/karma&quot;&gt;Karma&lt;/a&gt; 並且啟動 server&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo npm install -g karma
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;sudo npm install -g karma-ng-scenario
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;karma start spec/javascripts/restauranteur.conf.js
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果你進入 &lt;a href=&quot;http://localhost:9876/&quot;&gt;http://localhost:9876/&lt;/a&gt; 應該可以看到 JS 相關的測試已經成功地跑過了。也可以調整一下測試數值玩玩看紅綠測試。&lt;/p&gt;
+
+&lt;p&gt;在這裡所寫的測試其實是沒有意義的，只是為了協助大家弄清楚 Angular 如何寫測試的一個基本概念，還有很多，例如說 CoffeeScript 的 preprocess 和 mocks.js 怎麼相容的都還不會在這裡清楚的提到。&lt;/p&gt;
+
+&lt;h1 id=&quot;建立起我們的-restaurants-page-吧&quot;&gt;建立起我們的 Restaurants page 吧&lt;/h1&gt;
+
+&lt;p&gt;現在在 restaurant index template 上面弄一些小小的調整&lt;/p&gt;
+
+&lt;figure class=&quot;code-highlight-figure&quot;&gt;&lt;figcaption class=&quot;code-highlight-caption&quot;&gt;&lt;span class=&quot;code-highlight-caption-title&quot;&gt;public/templates/restaurants/index.html&lt;/span&gt;&lt;/figcaption&gt;&lt;div class=&quot;code-highlight&quot;&gt;&lt;pre class=&quot;code-highlight-pre&quot;&gt;&lt;div data-line=&quot;1&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;ul&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-repeat=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;restaurant in restaurants&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;2&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;  &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;&amp;#x7b;&amp;#x7b;restaurant.name&amp;#x7d;&amp;#x7d; (&amp;#x7b;&amp;#x7b;restaurant.id&amp;#x7d;&amp;#x7d;)&lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;3&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/figure&gt;
+
+&lt;p&gt;如果再看一次 &lt;code class=&quot;highlighter-rouge&quot;&gt;/#/restaurents&lt;/code&gt; ，你就會注意到 restaurants 是沒有 ID 的，為什麼呢？&lt;/p&gt;
+
+&lt;p&gt;在 Rails 4, 當你用 generator 來產生 scaffold, 會給你一些 .jbuilder 檔案像是:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;ls -1 app/views/restaurants/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.jbuilder
+app/views/restaurants/index.json.jbuilder
+app/views/restaurants/show.json.jbuilder
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果你隨便打開一個例如說 &lt;code class=&quot;highlighter-rouge&quot;&gt;app/views/restaurants/index.json.jbuilder&lt;/code&gt; , 你會看到&lt;/p&gt;
+
+&lt;p&gt;``` ruby app/views/restaurants/index.json.jbuilder
+json.array!(@restaurants) do |restaurant|
+  json.extract! restaurant, :name
+  json.url restaurant_url(restaurant, format: :json)
+end&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+像你所看見的，它包含了 ```:name``` 但卻沒有 ```:id```, 所以我們就把它加上去吧
+
+
+``` ruby app/views/restaurants/index.json.jbuilder
+json.array!(@restaurants) do |restaurant|
+  json.extract! restaurant, :id, :name
+  json.url restaurant_url(restaurant, format: :json)
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;儲存以後 reflash &lt;code class=&quot;highlighter-rouge&quot;&gt;/#/restaurants&lt;/code&gt;, ID 就出現了。&lt;/p&gt;
+
+&lt;p&gt;現在我們把 template 改回這樣：&lt;/p&gt;
+
+&lt;figure class=&quot;code-highlight-figure&quot;&gt;&lt;figcaption class=&quot;code-highlight-caption&quot;&gt;&lt;span class=&quot;code-highlight-caption-title&quot;&gt;public/templates/restaurants/index.html&lt;/span&gt;&lt;/figcaption&gt;&lt;div class=&quot;code-highlight&quot;&gt;&lt;pre class=&quot;code-highlight-pre&quot;&gt;&lt;div data-line=&quot;1&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/#&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;index&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;2&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;ul&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-repeat=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;restaurant in restaurants&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;3&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;  &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;ng-click=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;viewRestaurant(restaurant.id)&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&amp;#x7b;&amp;#x7b; restaurant.name &amp;#x7d;&amp;#x7d;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div data-line=&quot;4&quot; class=&quot;code-highlight-row numbered&quot;&gt;&lt;div class=&quot;code-highlight-line&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/figure&gt;
+
+&lt;p&gt;這裡面出現了一個我們目前根本沒有定義過的 &lt;code class=&quot;highlighter-rouge&quot;&gt;viewRestaurant()&lt;/code&gt; ，現在把這個定義加進去 controller 中&lt;/p&gt;
+
+&lt;p&gt;``` javascript app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee
+@restauranteur.controller ‘RestaurantIndexCtrl’, [‘$scope’, ‘$location’, ‘$http’, ($scope, $location, $http) -&amp;gt;
+  $scope.restaurants = []
+  $http.get(‘./restaurants.json’).success((data) -&amp;gt;
+    $scope.restaurants = data
+  )&lt;/p&gt;
+
+&lt;p&gt;# Add the following lines
+  $scope.viewRestaurant = (id) -&amp;gt;
+    $location.url “/restaurants/#{id}”
+]&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+
+是因為 Rails 的路徑約定俗成就是 ```resource_name/:id``` 可以進入 &quot;show&quot; 頁面，所以我們如此來定義 ```viewRestaurant()``` ，接下來產生 show 的 template, route 和 controller:
+
+
+&amp;lt;figure class='code-highlight-figure'&amp;gt;&amp;lt;figcaption class='code-highlight-caption'&amp;gt;&amp;lt;span class='code-highlight-caption-title'&amp;gt;public/templates/restaurants/show.html&amp;lt;/span&amp;gt;&amp;lt;/figcaption&amp;gt;&amp;lt;div class='code-highlight'&amp;gt;&amp;lt;pre class='code-highlight-pre'&amp;gt;&amp;lt;div data-line='1' class='code-highlight-row numbered'&amp;gt;&amp;lt;div class='code-highlight-line'&amp;gt;&amp;lt;span class=&quot;nt&quot;&amp;gt;&amp;amp;lt;h1&amp;amp;gt;&amp;lt;/span&amp;gt;&amp;amp;#x7b;&amp;amp;#x7b;restaurant.name&amp;amp;#x7d;&amp;amp;#x7d;&amp;lt;span class=&quot;nt&quot;&amp;gt;&amp;amp;lt;/h1&amp;amp;gt;&amp;lt;/span&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/pre&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/figure&amp;gt;
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+@restauranteur = angular.module('restauranteur', [])
+
+@restauranteur.config(['$routeProvider', ($routeProvider) -&amp;gt;
+  $routeProvider.
+    when('/restaurants', {
+      templateUrl: '../templates/restaurants/index.html',
+      controller: 'RestaurantIndexCtrl'
+    }).
+    when('/restaurants/:id', {
+      templateUrl: '../templates/restaurants/show.html',
+      controller: 'RestaurantShowCtrl'
+    }).
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;javascript app/assets/javascripts/angular/controllers/RestaurantShowCtrl.js.coffee
+@restauranteur.controller 'RestaurantShowCtrl', ['$scope', '$http', '$routeParams', ($scope, $http, $routeParams) -&amp;gt;
+  $http.get(&quot;./restaurants/#{$routeParams.id}.json&quot;).success((data) -&amp;gt;
+    $scope.restaurant = data
+  )
+]
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;現在重新整理 &lt;code class=&quot;highlighter-rouge&quot;&gt;/#/restaurants&lt;/code&gt; 頁面，你應該就可以找到 show restaurant detail 的按鈕及頁面了。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;以上參考至&lt;a href=&quot;https://www.honeybadger.io/blog/2013/12/11/beginners-guide-to-angular-js-rails&quot;&gt;這裡&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 07 Jun 2014 09:35:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/06/07/step-by-step-with-angularjs-and-rails.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/06/07/step-by-step-with-angularjs-and-rails.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>五倍專業，五倍祝福，五倍的紅寶石</title>
+        <description>&lt;p&gt;今年一直都很忙，其實有看部落格的朋友的在催稿我都有看到…&lt;/p&gt;
+
+&lt;p&gt;每次開始寫一些草稿，然後後來又沒時間完成，結果都只剩下一些心得文的時候我就想到這些留言然後一直覺得很慚愧 XD&lt;/p&gt;
+
+&lt;p&gt;今年的更新的頻率不高，但是真的不是因為我要結婚了（真的還很早啊別再問了），而是除了日常工作與社群(&lt;a href=&quot;http://rubyconf.tw/2014/&quot;&gt;RubyConf Taiwan 2014&lt;/a&gt; 與不定期卻又超熱門的 &lt;a href=&quot;http://railsgirls.tw/events/&quot;&gt;RailsGirls Taipei&lt;/a&gt; )跑龍套以外，我們幾位朋友成立了一家專司 Ruby/Rails 顧問諮詢與教育訓練的公司，&lt;a href=&quot;http://5xruby.tw&quot;&gt;五倍紅寶石股份有限公司&lt;/a&gt;。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;img src=&quot;http://i.imgur.com/U7Yozl3.png&quot; /&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;這個名字的由來，當然首先是因為 Ruby 本意為「紅寶石」，五倍則是因為… &lt;a href=&quot;http://www.ettoday.net/news/20131217/307462.htm&quot;&gt;今年是五倍&lt;/a&gt;啊！（其實已經是去年的事情了啦） XD&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h2 id=&quot;源起&quot;&gt;源起&lt;/h2&gt;
+
+&lt;p&gt;我在使用 C# 和 JAVA 的公司工作很久了，之前的工作，我一直刻意挑選並不是真正的軟體公司，而是工程顧問公司的軟體開發部門，這個理由非常的單純，因為我相信軟體可以為「工程顧問」這個行業帶來新的展望，尤其是土木這樣古老的行業，它牽涉到了「交通」、「基礎建設」，這些面向都是以國家為基礎，建設了照顧整個國家人民的工程，也每天每天的在被使用中。做這樣的工作，一直都讓我感到一種與其他人不同，很大的成就感。&lt;/p&gt;
+
+&lt;p&gt;只是這樣古老的行業有自己的包袱，種種的原因讓這樣的成就感也很難支持我繼續走下去。&lt;/p&gt;
+
+&lt;p&gt;撇開那些不講，我太喜歡自由的寫 Ruby，只是身在這樣的企業，或者應該說很多很多的台灣企業，不管是上司同事甚至客戶，總是有很多的原因拒絕使用 Microsoft 與 JAVA 以外的 solution，身為一個紅寶石工程師，我常常有想要告訴身邊夥伴 Ruby/Rails 有多優雅，生產力有多高的衝動，卻總是被拒絕使用的哀傷。這樣的境遇，我其實很可以理解「不用 Ruby」的理由：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;沒有太多人會，維護困難&lt;/li&gt;
+  &lt;li&gt;Senior 不好找&lt;/li&gt;
+  &lt;li&gt;客戶說他要裝 Microsoft&lt;/li&gt;
+  &lt;li&gt;工程師沒有 IDE 不習慣了&lt;/li&gt;
+  &lt;li&gt;那什麼，沒聽過&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;其實歸根究底可以說 &lt;code class=&quot;highlighter-rouge&quot;&gt;5&lt;/code&gt; 就是最大的原因，因為沒聽過，不知道好在哪裡，導致在外國這樣熱門的生產工具在台灣卻相對起來乏人問津，沒有使用的公司花了太多的工時與成本在做 Ruby/Rails 可以馬上完成的事情，有在使用的公司也為人才稀缺而苦惱，就算開出高薪，符合需求的人才也不一定能被招募（永遠有更好的待遇），其實目前在台灣的資深 Ruby/Rails 工程師超級吃香，只苦惱機會太多不知道選哪個，薪水起跳也不是普通工程師可以想像，資深的開發者要以此一技之長到國外去闖蕩也相對容易。&lt;/p&gt;
+
+&lt;p&gt;以上只是現實面的部分，Ruby 自然優雅的語法，與自由自在的開發方法，絕對可以讓工程師每天都很享受自己的工作，享受開發。&lt;/p&gt;
+
+&lt;p&gt;其實說穿了，我們就是想要讓更多人知道 Ruby 很好，這樣而已 XD&lt;/p&gt;
+
+&lt;h2 id=&quot;從基礎學起&quot;&gt;從基礎學起&lt;/h2&gt;
+
+&lt;p&gt;我不會說任何情況下使用 Ruby 都是 “best practice”，任何的事物都有其極限，這世界上沒有什麼是「最佳實踐」，我更加的認同，只有 “better” practice。在現在任何應用都需要 Web 化的趨勢下，學習 Ruby/Rails 是要實作出一個想法甚至服務最快速的方法之一，要追求職涯的薪級躍升，學習 Ruby/Rails 也是最穩妥的方法之一。每個人的人生都像是一組可以被最佳化的演算法問題，沒有什麼是正確的答案，但是總是有比其他解更好的答案，學習 Ruby/Rails 對許多人來說就是在現今職業趨勢下更好的答案。&lt;/p&gt;
+
+&lt;p&gt;這一陣子以來，我自己觀察過幾位開課的前輩，Rails Girls 也開啟了台灣的 Workshop 潮流，我們實際上的真正的把很多原本「從來沒寫過程式」的女孩子 training 成了有一定水準的開發者（不只是一天半的 workshop, 而是每週固定星期二的 &lt;a href=&quot;http://ltrt.kktix.cc&quot;&gt;Let’s try rails tuesday(LTRT)&lt;/a&gt; 所提供的充足訓練），協助了一些人無論是職涯轉換或是自己創業。真正能夠幫助成長的 workshop 都不是講講別人網路上的教材，丟一堆作業叫學員自己做完有問題來發問就有效益，這些都是我們歷來的 &lt;del&gt;切身之痛&lt;/del&gt; 經驗。&lt;/p&gt;
+
+&lt;p&gt;在實務上，身為一個 Ruby/Rails 工程師要會的技能更多了，遠超過對 Ruby/Rails 本身的理解，五倍紅寶石的講師群陣容便涵蓋了各領域專家，從後端到前端，從開發到自動化測試，從個人開發到協同合作，從練習實作到部署上線，五倍的祝福，五倍的專業 XD&lt;/p&gt;
+
+&lt;h2 id=&quot;高貴的紅寶石&quot;&gt;高貴的紅寶石&lt;/h2&gt;
+
+&lt;p&gt;在台灣，Ruby 的人才還是很高「貴」的，於是想要依靠 mentor 來讓自己更快的成為即戰力，有時會看到不可思議的高貴學習成本。我們幾個夥伴努力在其中取平衡點，跟隨最專業的業界講師學習是必要的，五倍紅寶石邀請名師，也提供相對合理平實的價格。免費的社群活動是很好的，但是有效率且專業的教育訓練服務無法在社群與個人中取得，個人開課的成本太高，以社群之名邀請企業 sponsors 贊助的課程數量也很有限，無法有效的幫助想要學習 Ruby/Rails 卻總是報不到名的朋友的需求，於是五倍紅寶石決定登記成為一個正式營運的商業體，不再僅是社群一天兩天的 workshop，而是規劃了一連串扎扎實實的教學時數與完整訓練。&lt;/p&gt;
+
+&lt;p&gt;我們都真心的希望，未來能夠看到 Ruby/Rails 在台灣更加茁壯，能帶給台灣企業與人才更高的生產力，工作起來更加的愉快。五倍紅寶石既是由 Ruby 而生，也希望最後把養分回歸到 Ruby 之中 :)&lt;/p&gt;
+
+&lt;p&gt;想要更了解五倍紅寶石可以如何幫助你，歡迎參加我們 6/5(星期四)即將舉辦的&lt;a href=&quot;http://www.accupass.com/go/5xruby&quot;&gt;說明會&lt;/a&gt;，只是要來閒聊見見朋友也很歡迎的。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;「五倍紅寶石」 Ruby/Rails 課程說明會
+
+--
+
+時間：2014/6/5 (星期四) 19:30
+地點：TED x Taipei Space (台北市金山南路一段 9 號 4 樓)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;活動免費入場，現場會準備一些簡單的點心及飲料。&lt;/p&gt;
+</description>
+        <pubDate>Thu, 29 May 2014 09:42:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/05/29/5xruby-go.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/05/29/5xruby-go.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>我見 CoC, Railsgirls 與開源社群</title>
+        <description>&lt;p&gt;因為一場誤會而引起了些許人士對 Code of conduct 的關注，身為女性開發者，我認為這樣的風氣是極好的。只是整起事件最妙的地方，是兩位女性參與者因為這個&lt;a href=&quot;http://blog.yorkxin.org/posts/2014/04/26/rubyconf-taiwan-2014-offensive-women&quot;&gt;小風波&lt;/a&gt;而四處去向發難的男性參與者道歉。女主持人因為意外出借私人電腦，卻因為講者無心露出桌面的比基尼泳裝照（&lt;a href=&quot;http://victoriassecret.com&quot;&gt;Victoria’s secret&lt;/a&gt; 的廣告照片），當下引發台下參與者在 Twitter 上眾聲嘩然，而這樣的意外在當時已經與發難的幾位外國與會者解釋清楚，沒想到卻引發了 twitter 上不同網友對此事的&lt;a href=&quot;https://twitter.com/yorkxin/status/460056904245317634&quot;&gt;論戰&lt;/a&gt;。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h1 id=&quot;coc-的範圍到底應該有多廣&quot;&gt;CoC 的範圍到底應該有多廣&lt;/h1&gt;
+
+&lt;p&gt;說來有趣，其實關於 RubyConf 2014 的 CoC 是其中一位在小風波中率先發難的朋友「阿仁」&lt;a href=&quot;https://twitter.com/plexus&quot;&gt;@plexus&lt;/a&gt; 在籌備時對我提出 Issue，最後中英文版都是我本人親自一字一句斟酌而成，對我來說，對於 Ruby community 的紳士們義不容辭的站出來為女性喉舌，衷心感到溫暖感謝。&lt;/p&gt;
+
+&lt;p&gt;詭弔的是，紳士們的發難，是因為誤會了電腦桌面的&lt;code class=&quot;highlighter-rouge&quot;&gt;比基尼泳裝照&lt;/code&gt;，是由一位&lt;code class=&quot;highlighter-rouge&quot;&gt;中年大叔&lt;/code&gt;所持有（我不是歧視中年，只是陳述事實），我當下對於這項解讀的解釋是&lt;code class=&quot;highlighter-rouge&quot;&gt;擁有比基尼照片的是一個可愛的女生&lt;/code&gt;。立刻有人覺得不妥當：&lt;code class=&quot;highlighter-rouge&quot;&gt;難道女生就可以擁有比基尼照片不被譴責嗎？&lt;/code&gt;，身為大會的一員，我的反應是就發言疏漏道歉，因為我認為有這麼多的紳士在保護這個社群的友善我樂觀其成，只是撇開身份，我想問的是&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;無論性別與目的，擁有一張比基尼照片就應該被譴責嗎？&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;這張照片至始至終並沒有被預期會出現在會場，只是單純的欣賞台灣沒有櫃的 Victoria’s secret，單純欣賞（甚或是期盼成為）照片上的美麗身軀，這件事情應該被譴責嗎？女主持人 &lt;a href=&quot;https://twitter.com/sho0416&quot;&gt;@sho0416&lt;/a&gt; 因為維護大會必須否定自己的價值觀為這起風波道歉，也許一開始放在桌面大概只是想買這套 Victoria’s secret（未經查證XD），她應得這樣的譴責嗎？&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt; 起初她不知道這張來自廣告的桌面涉及你不斷提到的性別歧視，你認為你是如何傷害到一個人的價值觀，今天之所以感覺性別歧視，不正是誤會是台上中年男子有一張穿比基尼的桌面嗎？&amp;#10;我同時也不會對 RG 議題回應，女生喜歡怎麼樣，報名人數會給答案，請自己舉辦自己喜歡的活動。&lt;/p&gt;&amp;mdash; Carol Hsu (@sheseee) &lt;a href=&quot;https://twitter.com/sheseee/statuses/460112362469470208&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;當欣賞與讚美一定要被解讀為一種色情與惡意，無怪乎會有 &lt;a href=&quot;http://peterevjan.com/posts/rubykaigi-2013-great-conference-but-i-probably-wouldnt-go-next-year-if-i-was-a-woman/&quot;&gt;RubyKaigi 2013 稱讚台灣女生可愛&lt;/a&gt;這樣幾乎是文字獄的事件發生，我想問的是，究竟是發言人帶上了有色眼光看待台灣女生可愛讓作者不快過分，還是這個指著無心者譴責冒犯色情的作者心裡已經把女性這樣那樣的想過一輪更加令人髮指？當然我不再指責這位先生，他畢竟希望保護女性，而且印象中已經向當事人簡單道歉（非公開的，這段如果有誤我會修正）。&lt;/p&gt;
+
+&lt;p&gt;更多的來說，如果今天我（生理性別女生）帶了電腦桌面是我自己穿比基尼的照片，我大方展示欣賞自己身體的美麗，這是應該被譴責的嗎？&lt;/p&gt;
+
+&lt;p&gt;有人會持有一種觀點「因為你讓我覺得被冒犯了，不舒服了」所以認定這樣的行為違反 CoC。如果因為我的身體並不如社會觀感的美麗，你感覺看到比基尼的照片不舒服，如果因為我生理性別為男性卻穿了比基尼讓你感覺不舒服，在非故意的情況下我不小心讓你看到了我的電腦桌面，我應該被譴責嗎？&lt;/p&gt;
+
+&lt;p&gt;還有更加過分的，如果我今天是同志，我可能光是存在就已經讓很多恐同患者感覺被冒犯了，不舒服了，你要對我譴責嗎？&lt;/p&gt;
+
+&lt;p&gt;難道，這都不是因為被冒犯者已經先行的歧視或是戴上了情色的眼鏡去蓋棺論定我的桌面，才感到的「不舒服」嗎？&lt;/p&gt;
+
+&lt;p&gt;後來我感覺對這樣的議題很憤怒，因為它早已被論定&lt;code class=&quot;highlighter-rouge&quot;&gt;色情&lt;/code&gt;，而真正的，我們女性開發者，或是說在台灣的理工世界，真真正正每日被冒犯的地方卻無人追究。我有為數不少的學長同事開口就帶著道地的黃腔，我們每日不知道被多少男性在背後論定美醜胖瘦，一堆人開口就是「幹」「屌」等等的（包含某些生理性別為女性者），我其實不相信在 RubyConf 的兩天活動中完全沒有出現，這其實才是道道地地不折不扣的冒犯定義，你為何不追究？還是你當下完全不感覺到應該追究，而到了一個比基尼女郎出現，你就感覺到色情，定義為冒犯。&lt;/p&gt;
+
+&lt;p&gt;就算是我也不會追究，對我來說，很多事情其實本來沒有那樣子強烈惡意的時候，真的不必刻意的去解讀成惡意，否則你的人生會敏感到沒完沒了。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;你怎麼看這個世界，這世界就是怎樣的。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我親自寫下了 CoC 的每一個字，而我會想要讓你知道，我們當初不是為了讓這樣的宣言成為無窮無盡的過度解讀。&lt;/p&gt;
+
+&lt;h1 id=&quot;其實我是要講-railsgirls&quot;&gt;「其實我是要講 Railsgirls」&lt;/h1&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/siuying&quot;&gt;@siuying&lt;/a&gt; &lt;a href=&quot;https://twitter.com/Brecht&quot;&gt;@brecht&lt;/a&gt; 是，我認為 RailsGirls Taipei 是歧視活動，原版 RailsGirls 和許多遍地開花版都有開放男性（再帶一個女生來，不夠名額女憂優先），但台北的完全不許。&lt;/p&gt;&amp;mdash; Yu-Cheng Chuang (@yorkxin) &lt;a href=&quot;https://twitter.com/yorkxin/statuses/460069170487369728&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;我個人對於&lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt;所持的&lt;a href=&quot;https://twitter.com/yorkxin/status/460069170487369728&quot;&gt;論點&lt;/a&gt;確實是從來沒有深思過的，在三屆的 &lt;a href=&quot;http://railsgirls.tw&quot;&gt;RailsGirls&lt;/a&gt;中，我們幾乎全部時間只專注在&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;如何讓女生感到放心安心願意踏出第一步&lt;/li&gt;
+  &lt;li&gt;如何調整教學內容與進度&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;這兩件事情上，而從未去想過台灣鐵道男孩們已經有一群人對此感到不滿 XD&lt;/p&gt;
+
+&lt;p&gt;最重要的是我才愕然發現，其實深感不滿的原因也包含&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt; &lt;a href=&quot;https://twitter.com/siuying&quot;&gt;@siuying&lt;/a&gt; &lt;a href=&quot;https://twitter.com/Brecht&quot;&gt;@brecht&lt;/a&gt; 工作人員絕大多數為男性、然後限定招收女學員，我很難不覺得這個作法需要被質疑&lt;/p&gt;&amp;mdash; Zhusee (@zhusee2) &lt;a href=&quot;https://twitter.com/zhusee2/statuses/460069887671422976&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;這部分的隱含暗示我會跳回 CoC 段的結論，「&lt;code class=&quot;highlighter-rouge&quot;&gt;你怎麼看這個世界，這世界就是怎樣的&lt;/code&gt;」。&lt;/p&gt;
+
+&lt;p&gt;但無論如何，我覺得這樣的論證是很好的，雖然是從負面疑慮來引發。在這些問題中，我還是第一次對深深感謝自己的染色體，雖然因為生活在理工人生中大部分時間我其實並不喜歡它，不過這次有機會讓我染色體正確的發言回應：&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/Brecht&quot;&gt;@Brecht&lt;/a&gt; &lt;a href=&quot;https://twitter.com/siuying&quot;&gt;@siuying&lt;/a&gt; &lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt; &lt;a href=&quot;https://twitter.com/zhusee2&quot;&gt;@zhusee2&lt;/a&gt; RG 就我的理解並不是歧視女生的程式學習能力差，而是因為這世界都是男性為主，女生大多數會害羞會怕，希望以多是女性的環境提高女生進入這個領域的興趣和契機。這也許不單是考慮能力，而更多是不同性別多數心理狀態。&lt;/p&gt;&amp;mdash; Carol Hsu (@sheseee) &lt;a href=&quot;https://twitter.com/sheseee/statuses/460084151031300097&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;這再一次的表現出男女有別的事實，&lt;code class=&quot;highlighter-rouge&quot;&gt;女生比起數字（能力、智商），更加在乎心理上的事物&lt;/code&gt;。我想起 RubyConf 中我曾經有機會與 &lt;a href=&quot;http://womany.net&quot;&gt;Womany&lt;/a&gt; 的資深工程師與實習生分享我對於 Womany 電子報的看法，就印象節錄一段在此&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;夜深人靜的時候，妳是否也感到寂寞了呢？…&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;我自己是比較大剌剌與男生處慣了的女生，基於好奇也訂閱了 Womany 的電子報，她真的是一種非常不同的風格，非常的… 情緒化（Emotional），我那時候是大笑著對兩位 Womany 的成員說，這在我（不太女生的個性）看來常常是一種「關你屁事啊！(XD)」的風格。但是，他們兩位都說以數據來看，很多女生真的是吃這一套的，甚至會回信表達自己感受到溫暖或安慰。今天如果不是 Womany 出品，上面那段文字甚至會看起來像是一種不良的奇怪詐騙廣告啊。&lt;/p&gt;
+
+&lt;p&gt;我想說的是，女生真的是一種不同的生物，是不是歧視，端看你從哪個點切入。有幸加入 RailsGirls 的 coach，我真心敬佩這一群總是心心念念「如何讓女生更感到尊重」、「如何更加給予女生實際的幫助」的工程師男人們，關於這個活動中許多細膩處的考量，我常常是覺得真的是太為難這群人了 XD&lt;/p&gt;
+
+&lt;p&gt;節錄自&lt;a href=&quot;https://twitter.com/ManicLF&quot;&gt;@manic&lt;/a&gt;的小故事&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;說故事：RailsGirls Taipei#1 籌辦會議
+-------------------------------------------
+要舉辦 RailsGirls#1 了，主辦人和教練們對一件事很憂心：如果沒什麼女生報名怎麼辦？
+「開放男生報名如何？想學 Rails 的男生肯定不少吧？」有人問。
+「可以開放男生？」
+「嗯，不過還是女生優先的樣子。」
+「我覺得限女生好了，因為我如果不限男女我怕會有女學員會不敢報名，以往不分男女的 Workshop 不是都男多女少嗎？」
+「...如果萬一到時候男生多女生少的話我們還要辦嗎？那還能叫 RailsGirls 嗎？」
+大家想像了一下。一陣沉默。
+「...哎，我想還是就限女性好了，如果到時候男生多女生少感覺很不像話啊，我相信想學 Rails 的女生還是很多的，如果真的人不夠，我們再來考慮好了。」龍哥輕嘆了一聲。
+開放報名後。
+「一天 300 人，娘子啊…快出來見上帝啊...」
+「哈哈，之前擔心這麼多結果看來是多餘的啊。」眾人都放下一顆心，頻道上都是祝賀之詞。
+然後過了幾小時，@mufan 開始哀嚎「300 人取 30 是要我們怎麼選啊......」
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;By the way, &lt;a href=&quot;https://twitter.com/ManicLF&quot;&gt;@manic&lt;/a&gt; 也因為考量到 RailsGirls 有後續學習的需求，努力花了非常多時間與心力開辦 &lt;a href=&quot;http://ltrt.kktix.cc&quot;&gt;LTRT&lt;/a&gt;，每週二晚上召集有空的教練持續為學員更上一層樓，風雨無阻。&lt;/p&gt;
+
+&lt;p&gt;不同於原始版，台北 RG 有女性限制，現階段不開放讓男生參與（那不是 do not, 而是 can not），也不同於原始版，這不是一個一天半就結束的活動，而是一場馬拉松式的耕耘。&lt;/p&gt;
+
+&lt;h1 id=&quot;open-source-community&quot;&gt;Open source community&lt;/h1&gt;
+
+&lt;p&gt;而我其實也在這個領域未久，我認定的 open source community 是開放且自由的，對我來說，也許在 open source community 積極參與可能附帶「成名」的好處，然而任何人都不應該抱著這樣的信念參與，因為這根本性的違背了 open source 的精神。&lt;/p&gt;
+
+&lt;p&gt;RailsGirls 會起質疑聲浪，或許有部分原因是她小小的在台灣女生中吹起了小旋風，同樣限制女性的 open source 活動與團體像是 &lt;a href=&quot;http://wofoss.blogspot.tw&quot;&gt;WoFOSS&lt;/a&gt; 與 &lt;a href=&quot;http://tw.pyladies.com&quot;&gt;PyLadies&lt;/a&gt; 因為目前參加人數不多所以沒有人會特別去質疑說為什麼。&lt;/p&gt;
+
+&lt;p&gt;我曾經在 OSDC 2014 上與主辦人&lt;a href=&quot;https://twitter.com/imacat_tw&quot;&gt;依瑪貓&lt;/a&gt;聊過，對我來說，我也想深入學習 Python ，不過看起來 PyLadies 上面不是給無基礎新手，目前好像不是手把手教學而類似讀書會，門檻較高，適合有一定基礎的女生，受眾自然較少。並且我認為，對 PyLadies 而言，她們也是一群全心想把這些推廣給女生的組織，在這個立足點上，早已沒有人在分神性別之爭。&lt;/p&gt;
+
+&lt;p&gt;我想說的是，例如我與依瑪貓的交流，對我與對她而言都不是一場競爭賽(competition)，比哪邊人多，哪邊好哪邊不好，同樣是開源社群，我與她都只著想「如何讓這個世界變得更好」。&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;我不關心任何堂而皇之的言論，我不在乎為自己的不周道歉，身為這個性別，我在參與的當下只想到我如何為這個性別做得更多，如果你不是，如果你沒有，那你為何要覺得這都是ㄧ場陰謀？&amp;#10;&amp;#10;我很氣，因為我現在覺得我的同伴被消費，沒別的原因。 &lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt;&lt;/p&gt;&amp;mdash; Carol Hsu (@sheseee) &lt;a href=&quot;https://twitter.com/sheseee/statuses/460105724681408512&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;而令我感到驚訝的是這則回文&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/sheseee&quot;&gt;@sheseee&lt;/a&gt; 根據還原的真相，這事是一連串的失誤所造成的悲劇，我也沒有針對個人。至於那些西方人怎麼會覺得受冒犯，我不能完全理解，只是現在既然已經成為事實，從公關上撫平這件事會比較好，而不是怪罪哪些人的責任。&amp;#10;&amp;#10;Workshop 確定會辦了，這事看來只能從體制外處理，很可惜。&lt;/p&gt;&amp;mdash; Yu-Cheng Chuang (@yorkxin) &lt;a href=&quot;https://twitter.com/yorkxin/statuses/460114322950066176&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;我從不覺得 RailsGirls 是一種「體制」，或是任何的群體在 open source 的世界中是「體制」，既然從來不存在體制，又何來衝撞或是「體制外處理」？&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;zh-tw&quot;&gt;&lt;p&gt;&lt;a href=&quot;https://twitter.com/yorkxin&quot;&gt;@yorkxin&lt;/a&gt; 我認為社群的立基點是為了推廣而存在，如果有人願意主動出力做某件事情，永遠都是好的，沒有體制也無所謂可惜。&lt;/p&gt;&amp;mdash; Carol Hsu (@sheseee) &lt;a href=&quot;https://twitter.com/sheseee/statuses/460115067879448576&quot;&gt;2014 4月 26日&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;我想說的是，如果今天你所看見的事實是你認為社群分裂在發臭，發臭的究竟是某些人帶有各種定見與想望的心，還是只不過是道不同呢？我這個段落也許是本篇文章中口氣最重的，我想說的是，open source 的精神是開放與自由，請不要把這件事忘記。&lt;/p&gt;
+
+&lt;p&gt;在 Conf 中，我曾經與 Heroku 們交換意見，他們認為台灣的 RailsGrils 社群竟然可以如此壯大是個奇蹟，我的回答是「因為台灣都是同一群人在跑同一個社群，很多不同語言甚至都同樣是一群人」。他們表示日本因為學習使用 Ruby 的人太多了，每一個小地方都有自己的小社群，所以人數就是都很少（所謂遍地開花），這意味著他們的推廣已經成功，當然相對的壞處就是人數都很少，而反過來羨慕台灣社群。&lt;/p&gt;
+
+&lt;p&gt;如果你對於社群有想要推向它走向更好的方向，我認為所有的人都應該歡迎任何人的加入，並且感謝你的貢獻，這件事的本質就像是民主，我們不該造神，不該有一個 Leader，不該有一個體制，每一個人都應該可以有權決定或給予建議，為何會覺得自己已經身處在「體制」之外？&lt;/p&gt;
+
+&lt;p&gt;推薦一下這個已經有段時間的解釋 open source 的影片&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;//www.youtube.com/embed/a8fHgx9mE5U&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;我希望的社群，是一群人只想著讓世界變得更好，我希望你也會因此有相同的夢想，如果你覺得要 fork 出來改進，我也隨時願意提供協助。我這樣的人更多，就不會有所謂發臭的分裂。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;以上的言論，我不該聲稱合理使用，因為那都只是在茫茫網海中剪輯了片段，經由中天以後相信很多人都知道片段剪輯是很可怕的，所以被片面引用者有疑慮歡迎建議我改善。&lt;/strong&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 27 Apr 2014 09:24:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/04/27/coc-railsgirls-community.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/04/27/coc-railsgirls-community.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>從科技學運到紅色上海</title>
+        <description>&lt;p&gt;是在三月十八日的晚上從朋友的 Facebook 看到號召大家一起去立法院靜坐，保護已經衝進去的人，然後後面的事情大家都知道了。&lt;/p&gt;
+
+&lt;p&gt;不管是行政院的流血鎮暴。&lt;/p&gt;
+
+&lt;p&gt;各家媒體的抹黑，各種團體的紛亂。&lt;/p&gt;
+
+&lt;p&gt;我一直不是那種很關心政治的人，一開始只是關心我的朋友，但是從 3 月 18 日開始我理解到不關心政治的人就會一直被政治所侵害。&lt;/p&gt;
+
+&lt;p&gt;對我來說，應該是對很多人來說，台灣這麼多支持學運的年輕人，其實都是不能接受自己從小被教育的民主，其實只是一場騙局而已。我的世界中絕大部份的人都變了，甚至出門吃飯大家只憂心的討論政治，那不是一種狂熱或是盲目的支持，只是對自己生活的土地表現出深切的關心。&lt;/p&gt;
+
+&lt;p&gt;不過我不是要講我對於學運的理解或看法，我想要記錄下來的是，在這之後的一個月內我去了一趟中國。&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h2 id=&quot;紅色上海&quot;&gt;紅色上海&lt;/h2&gt;
+
+&lt;p&gt;318 學運後的一個月我去了上海，完全的自由行程，一開始只是因為和一群外國朋友一時興起買了 F1 的三天套票，於是有了這個出行的機會，那時候學運還沒有開始，我們只是一群比台灣人均收入高出些許的勞工。（我想說的是，也許我們有可能是不會被服貿所淘汰的那群人，我們一樣痛恨不民主的服貿流程）&lt;/p&gt;
+
+&lt;p&gt;過去我到中國的機會不多，只有去過一趟北京，是跟著爸媽去交際的，一路有導遊把那個世界包裝的像只是另外一個旅遊勝地，我沒有想過，拿著臺胞證（台灣地區民眾）通過中國海關的感覺事實上是五味雜陳。等著通關的過程中，我盯著每根柱子上都有的液晶螢幕，上面不斷強力放送著一個西裝革履的中年男人，&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;「過去我們想和外國人一起喝一杯咖啡都沒辦法，現在我們甚至還能請外國人吃飯，因為現在我們有錢了」&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;他說。這都是因為祖國的強大，環視巨大的浦東機場，中國確實是看起來前所未有的強盛，只是盯著那段重複播放的影片，現階段，中國的價值似乎就像是一直在不斷的告訴所有人，「現在我們有錢了」。&lt;/p&gt;
+
+&lt;p&gt;這趟旅程我們去的地方，是熱錢竄湧的 F1 賽車場，是繁華至極的外灘，那裡看起來最不缺的就是錢，就像在每一處不斷地想要宣告「現在我們有錢了」。可是同時，賽車場鐵欄邊有很多衣衫襤褸的人拿著破舊的小雨衣小耳塞，想要賣個 5 塊 10 塊（當然也有想要試圖開價開個 50 塊之類的 XD），整個區域守滿了拿著警棍的武警特警和保安，一發現有人要交易就整隊衝上前幾乎要直接逮捕那些衣衫襤褸的窮人。奢華的外灘那些精品大道上雲集了無數金髮碧眼外國人，旁邊的小巷弄是連路燈都沒有，看進屋內，都是破舊的不忍去想像如何生活在其中，一樣不時會看到持著棍棒的警察，端著盾牌，就像是隨時都會有人要起來暴動似的。就算是解放軍端著步槍在路上踢正步我都碰到了，那就像是這個國家隨時要教訓你，without any reason.&lt;/p&gt;
+
+&lt;p&gt;這是我眼裡的中國，第一印象。&lt;/p&gt;
+
+&lt;p&gt;我想最初，在腐敗的國民黨統治下，提出「共產」這個理念，一定是非常熱血、非常吸引人的理想國藍圖，可是這麼多年過去了，共產往資本靠攏，沒有地方比上海更勢利眼，到處都是富人專用的道路、車牌、俱樂部，幾乎所有的東西都分了資本階級，有著最森嚴的國家警力在巡邏在隨時準備鎮壓人民。&lt;/p&gt;
+
+&lt;p&gt;台灣人需要錢，台灣人之所以想要堅持自己是一個國，是因為台灣人最珍貴的價值是民主，如果今天中國如同美國民主，我想缺錢的台灣人願意與中國統一的民意會更強吧。&lt;/p&gt;
+
+&lt;p&gt;同行的外國友人其中一位曾經說過，&lt;code class=&quot;highlighter-rouge&quot;&gt;「Asian's life is cheap」&lt;/code&gt;，尤其在中國更是，走在路上你會一直覺得好像人命都是很不值錢的東西，現在則是沒有錢的人命都是更沒價值的。&lt;/p&gt;
+
+&lt;h2 id=&quot;文明先行&quot;&gt;文明先行&lt;/h2&gt;
+
+&lt;p&gt;於是走在這個「現在我們有錢了」的地方，到處都是跟「文明」兩個字脫不了關係的標語：文明先行、文明小區、文明搭地鐵、文明隨手撿垃圾、文明開車不吐痰之類的，很明顯的一個地方越去宣導一件事情當然就是那件事情越是缺乏。簡單來說就是只有一個字，搶！&lt;/p&gt;
+
+&lt;p&gt;畢竟人這麼多，你不搶怎麼活呢？&lt;/p&gt;
+
+&lt;p&gt;現在中國像是處在二三十年前剛有錢起來的台灣，正站在一個轉折點，中年人以上還是習慣搶，搶快搶多搶方便，年輕人就大致比較不會，大概就變成內化的狼性（？），要搶的是成功，所以在上海感覺英文流利的人不少，尤其是賽車場，有可能一個轉頭就是俄羅斯人和中國人在討論現在比賽的賽況和自己最喜歡的賽車手，用流利的英文。然後外國人身邊的伴也十之八九是中國女性，我一直想到一篇著名的標題 Taiwanese Girls are easy，看起來中國女生可能沒有很 easy，身邊常常都帶著孩子，所以也許是以結婚為前提吧。&lt;/p&gt;
+
+&lt;p&gt;Anyway, 這裡真的還需要一陣子的文明先行，這讓我更感覺到台灣根本是禮義之邦，連學運的暴民都在做垃圾分類。一個國家的文明其實常常可以從公共地方洗手間垃圾桶看出端倪，但是，上海幾乎絕大部分的店家，甚至到購物廣場都滿難找到洗手間，就是直接藏起來了這樣 XDDD&lt;/p&gt;
+
+&lt;p&gt;雖然地鐵上的青壯男人搶著坐博愛座這件事一直讓我快要忍不住過去叫他起來的衝動，不過看見旁邊的大嬸阿姨婆婆更會搶，我就放心了（？），也許這就是這裡的人民的共同默契吧…&lt;/p&gt;
+
+&lt;h2 id=&quot;現在我們有錢了&quot;&gt;現在我們有錢了&lt;/h2&gt;
+
+&lt;p&gt;每一個細胞似乎都在大聲呼喊想讓你知道「現在我們有錢了」的國度，四處都有國家武力，四處都在掠奪，國家掠奪國家，國家掠奪人民，人民掠奪人民。我一直重複想起一句話：「我們是小國小民，但是我們是好國好民。」&lt;/p&gt;
+
+&lt;p&gt;央視的新聞一直在不停的播送各國的主要新聞，這對於台灣人民來說，就是一個很有國際視野的新聞台。經過學運的洗禮後，我相信 90% 的台灣人都感覺到媒體的威力與可怕，台灣新聞總是比起國際，更加關心島內發生了什麼，什麼藝人幹了什麼，說起來是非常無謂瑣碎，相反的，央視就是展現出「我不想讓你知道這個國家裡面發生了什麼」的姿態，台灣一個小島每天都可以有這麼多奇奇怪怪的事情能報滿午間新聞和晚間新聞，難道幅員廣袤的中國大陸會沒什麼特別好讓國民了解的事情嗎？說到日本的話就是會帶著「密謀」「擺姿態」「故作」之類的詞彙，這陣子台灣人民對媒體政治風向的敏感度應該是總量上的大幅躍進了，所以看到央視是很容易有神奇感受的。&lt;/p&gt;
+
+&lt;p&gt;我對於台灣感覺到驕傲，雖然我們現在變窮了，那又怎麼樣。&lt;/p&gt;
+
+&lt;p&gt;我們知道民主的價值，還知道要為民主而群起抗爭，我們的命是相對更被尊重有價值的，我們的城市是禮義之邦，我們還可以上 facebook 和 twitter 不用翻牆，我們有言論自由，一旦嘗過了自由的滋味，就不會想要回頭了。&lt;/p&gt;
+
+&lt;p&gt;外表富庶強盛的中國確實令人羨慕，只是那些形而下的事物，真的不值得拿民主自由去換。&lt;/p&gt;
+
+&lt;p&gt;我不知道台灣有沒有辦法獨立，但是我深切期待，台灣的美好能夠對同是華人的中國人有所影響，無論是繁體字，或是民主自由。&lt;/p&gt;
+
+&lt;p&gt;而我認為這樣的價值在現在與未來都不會因為台灣是否獨立而消逝。&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 24 Apr 2014 10:29:00 +0800</pubDate>
+        <link>http://carolhsu.github.io/2014/04/24/sun-flower-and-democracy.html</link>
+        <guid isPermaLink="true">http://carolhsu.github.io/2014/04/24/sun-flower-and-democracy.html</guid>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

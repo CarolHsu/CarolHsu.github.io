@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Rails Girls #01: Say Hello to Rails, Girls :></title>
+  <meta name="description" content="離Rails Girls結束已經有好一段時間，稍稍拖了一下才來寫心得。很開心有機會可以參加第一屆的Rails Girls，當Coach的經驗很有趣，從一開始參與討論，設計課程到抽學員到活動開始那天，其實Coach的準備沒有想像中多，但這是因為經驗豐富的Organizers @龍哥、@慕凡和@泰安規劃召集才有這麼好...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://carolhsu.github.io/2013/09/12/railsgirls-01.html">
+  <link rel="alternate" type="application/rss+xml" title="shesee's 不定期更新" href="http://carolhsu.github.io/feed.xml" />
+</head>
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">shesee's 不定期更新</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Rails Girls #01: Say Hello to Rails, Girls :></h1>
+    <p class="post-meta">Sep 12, 2013</p>
+  </header>
+
+  <article class="post-content">
+    <p>離<a href="http://railsgirls.tw">Rails Girls</a>結束已經有好一段時間，稍稍拖了一下才來寫心得。很開心有機會可以參加第一屆的Rails Girls，當Coach的經驗很有趣，從一開始參與討論，設計課程到抽學員到活動開始那天，其實Coach的準備沒有想像中多，但這是因為經驗豐富的Organizers <a href="https://twitter.com/eddiekao">@龍哥</a>、<a href="https://twitter.com/ryudoawaru">@慕凡</a>和<a href="https://twitter.com/taiansu">@泰安</a>規劃召集才有這麼好的景況XD</p>
+
+<p><a href="http://registrano.com/events/railsgirls-taipei-01">Rails Girls 的報名</a>在開始上線的兩天內就很快地關閉掉截止了，因為其實 <a href="http://clbc.tw/railsgirlstaipei/#more-1460">CLBL</a> 可容納的人數最多也就能有25個學員，然後藉助了各方的宣傳（主力可能是<a href="http://www.inside.com.tw/2013/08/12/rails-girls-taipei-workshop">Inside</a>）整個報名狀況完全是出乎一開始所有宅宅教練的預期 – 怕人數不足，兩天內衝到 325 人，從三百多位佳麗(XD)中選出 25 位真的是太難了，所以緊急關閉報名，導致了粉絲團頁面上出現了好多<a href="https://www.facebook.com/railsgirlstw/posts/410386352406134">正妹的殘念</a>。本來 RailsGirls 的定調就是希望女生能夠藉助這樣的活動體驗 coding 的樂趣，所以「初學者」或是不曾有過相關經驗的女生會是主要的客層（？），因為定調如此，本來很擔心人數會不足的幾位召集人，沒有想到竟然報名會爆衝… 這其實也說明了一個事實： <code class="highlighter-rouge">女生真的不是看到數學工程和程式就怕</code>，有興趣的女孩子還是非常多的，而且以報名者填寫的原因來說，<code class="highlighter-rouge">真的想要學著做一些東西的需求</code>在女學員報名者中是一個很重要的報名動力。</p>
+
+<!-- more -->
+
+<h2 id="環境啊">環境啊…</h2>
+
+<p>我個人覺得架 Ruby on Rails 環境一向就是最麻煩的事情，就像是<a href="https://twitter.com/racklin">@Rack lin</a>阿土伯之前說過的：「Rails 開發者的跨平台就是～從 Mac 上面 deploy 到 Ubuntu 伺服器」，也就是說，Rails 根本一點也不在乎所謂跨平台的事情XD</p>
+
+<p>但是為了怕初學者因為其實很崩潰的架環境過程失去興趣，從一開始的討論就很在意如何快快幫學員把環境架好可以開始 rails generate scaffold …(誤)</p>
+
+<p>統計了學員會帶來的作業系統以後，就擬定了三個劇本預備快速裝好環境，還有各作業系統的「雨備」（當真的卡關的時候可以快速跳過這步驟的 VM 和預備機器），結果出乎意料的是後來參與的學員有很多人都將行前提醒事項上面的預備安裝準備好了，甚至有早就裝好所有環境的… (像我的學員)，但是當初為了預防萬一在這個步驟給了一個晚上又半個早上的時間，事實證明還是多少需要的。</p>
+
+<p>但是總之，事實證明來參加的學員們學東西是很認真的！</p>
+
+<h2 id="rails-girls-的美味便當盒">Rails Girls 的美味便當盒</h2>
+
+<p>制作一個網站其實用到了很多技術，怎麼想都覺得不太可能在短短一天多的課程內完成，所以規劃了很簡單的「便當盒」，盒子裡的每一格都放了一大類的素材，而學員在第一階段要做的就是知道這些素材該放在哪一個格子裡。</p>
+
+<p><img src="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-ash4/1011551_10151851333764316_2109673682_n.jpg" /></p>
+
+<p>便當盒每一格都代表了要放進同一類的「食材」，包含了製作一個網站需要的資料儲存空間（Storage），網站背後運作的邏輯（Logic）和網站外皮（Style and Structure），當然還有一些架伺服器的基本設施（Infrastructure），投影幕上放了一堆食材等著學員將之放入相對應的格子內…</p>
+
+<p><img src="http://farm4.staticflickr.com/3750/9695442839_ae503663d3_z.jpg" /></p>
+
+<p>這個階段是本次唯一有同步教學的小活動，最主要的目的只是讓學員可以基本的認識製作一個網站會用到的工具組合，每一格裡面的食材在世界上都有很多種類可以選擇，但是每個格子都不能空下來，才能組成一個美味便當盒。</p>
+
+<h2 id="實作時間">實作時間</h2>
+
+<p>其實 Rails Girls 並不是著重於把學員真正的教會（一天半的時間而已假如說真的可以教會也太唬爛了XD），最大的目的是在於讓女孩子也可以親身體驗寫程式的樂趣，Rails 的其中一個特色功能就是一行 command line 就可以 generate 一個「鷹架」(scaffold)，很快速的生成一個最基本的 CRUD (新增、顯示、修改、刪除) 架構製作出一個 Web form，在 Rails 4 中甚至可以直接產生關聯式資料表的scaffold，對新手來說就是一件成就感++的過程（XD）。由於一開始報名階段就已經挑選過參加者的資格，雖然說大部份的學員都是新手或不曾接觸 coding 的背景，其中有不少人原本就是前端或網站設計出身，所以程度之間還是有差異，這時候個人教練的配置是比較合適的，例如我的學員就完全可以直接跳過下 scaffold 的成就感++階段直接來硬派的 MVC 純手作。</p>
+
+<p>只是在實作時間最後的發表眾教練都深感前端真的好威啊，同樣是個 scaffold，用精緻前端秀出成果的氣勢就是完全不同，一點都感覺不出是新手練習品…</p>
+
+<p><img src="http://farm4.staticflickr.com/3695/9698672234_8aa3800ba7_z.jpg" /></p>
+
+<p>相較起來，就算是靠實力手刻的 MVC code 沒有前端設計和直接 scaffold command 下下去呈現出來的成果根本沒有差異，後端工程師啊…（淚）</p>
+
+<h2 id="後記">後記</h2>
+
+<p>因為專案轟炸和出國的關係拖了好久好久才把這篇草稿寫出來，但是回想起來整個過程還是很好玩，而且當 Rails Girls 的教練在每天被工作瘋狂攻擊的日子就像是一種紓壓啊（誤），希望十月份的 Rails Girls 能有新氣象囉 :)</p>
+
+<p><img src="https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-ash3/1236962_420020041442765_195532241_n.jpg" /></p>
+
+<p>[註一] <a href="http://www.techbang.com/posts/14888-happy-girls-can-also-write-programs-interview-with-rails-sponsored-girls-team">Rails Girls 的報導: 讓女生也可以快樂寫程式！專訪 Rails Girls 主辦團隊</a></p>
+
+<p>[註二] <a href="http://www.flickr.com/photos/101459721@N04/sets/72157635423700583/">活動相片集</a></p>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">shesee's 不定期更新</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-1">
+        <ul class="contact-list">
+          <li>shesee's 不定期更新</li>
+          <li><a href="mailto:sheseee@gmail.com">sheseee@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/carolhsu">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">carolhsu</span>
+            </a>
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/sheseee">
+              <span class="icon  icon--twitter">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                  c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+                </svg>
+              </span>
+
+              <span class="username">sheseee</span>
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>

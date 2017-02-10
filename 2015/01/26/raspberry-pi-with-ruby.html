@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Raspberry Pi with Ruby</title>
+  <meta name="description" content="">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://carolhsu.github.io/2015/01/26/raspberry-pi-with-ruby.html">
+  <link rel="alternate" type="application/rss+xml" title="shesee's 不定期更新" href="http://carolhsu.github.io/feed.xml" />
+</head>
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">shesee's 不定期更新</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Raspberry Pi with Ruby</h1>
+    <p class="post-meta">Jan 26, 2015</p>
+  </header>
+
+  <article class="post-content">
+    <p><img src="http://www.raspberrypi.com.tw/wp-content/uploads/2015/01/anidees_case_for_raspberrypi_model_b_plus_clear_01.jpeg" alt="Raspberry Pi Model B+" /></p>
+
+<h1 id="raspberry-pi">Raspberry Pi</h1>
+
+<p>是說都推出好久好久了才有機會玩到 <a href="http://www.raspberrypi.org/">Raspberry Pi</a> 這個知名小玩具，要感謝 <a href="https://taipeihack.org/">Taipei Hackerspace</a> 和<a href="http://www.raspberrypi.com.tw/">台灣樹莓派</a>出借場地和設備，超多小零件還有各種神器讓我可以複習電子電路一整天 (?)</p>
+
+<p>Raspberry Pi 眾所皆知就是個小小小的迷你電腦，因為我一直想說「啊不就是一個迷你（效率很差）的小主機板來著嗎」就一直沒有很積極地去想玩，一直想說可能有一天剛好身上帶著三千塊經過天瓏就順便來買一塊吧的心情，結果要嘛是懶惰的直接網路訂書不然就是經過天瓏卻沒有三千塊於是就一直沒有擁有過 XD</p>
+
+<p>然後神奇的講師 sosorry 簡直就是武器庫，滿桌的超齊全零件讓我覺得今天如果沒有做出個機關槍來都是浪費了啊啊啊…</p>
+
+<!-- more -->
+
+<p><img src="https://fbcdn-sphotos-d-a.akamaihd.net/hphotos-ak-xaf1/v/t1.0-9/10429431_4929153644193_2568793629564064896_n.jpg?oh=b4289fc95d7942c0f85c75505e514757&amp;oe=55643E43&amp;__gda__=1432850276_463c820512a82d5b067b3619f1558885" /></p>
+
+<h1 id="關於-gpio">關於 GPIO</h1>
+
+<p>sosorry 做了一個超完整圖解教學投影片<a href="https://drive.google.com/file/d/0B2qc-F3WpYxWQUdaaVctSFd1cHM/view">在這</a></p>
+
+<p>身為一個麻瓜有一個超棒的好處就是可以無負擔的說我不會～然後到處煩高手。</p>
+
+<p>Raspberry Pi 的第一次開機著實花了好多時間，主要是無法直接接上 Mac 使用，後來就只好外接螢幕鍵盤滑鼠快快打開連網，終於可以順利的在 Mac 上 ssh 進去，結束本回合。</p>
+
+<p>然後開始了人生第一次和 <a href="http://zh.wikipedia.org/wiki/GPIO">GPIO</a> 玩耍的過程。</p>
+
+<p><img src="http://i.imgur.com/dxtIzOr.png" alt="來源 - 台灣樹莓派文件" /></p>
+
+<p>一開始嘗試接個電燈來亮亮是說這個電子電路圖就不行了，想當年因為覺得自己電學很爛所以選個力學的土木領域來念，沒想到後來完全不務正業，然後直到今天又回來還知識債，這就是人生。</p>
+
+<p>我用的是 Raspberry Pi Model B+ ，有加強版的 GPIO 可供使用（一般是 26 根腳位，加強版有 40 根），每一根腳位都有自己的定義。線路的部分就不贅述，麵包板燈泡接地線和電阻，先來一個簡單的範例：</p>
+
+<ol>
+  <li>接地線在第 6 根腳位</li>
+  <li>另一根線在第 12 根腳位</li>
+</ol>
+
+<p>把通路接好以後，就開始要寫軟體來控制腳位的行為，像是輸入還是輸出，高低電位或是寫值讀值等等。</p>
+
+<p>sosorry 給的範例，或者說似乎滿多數的 Raspberry Pi 開發者應該都是用 Python 來寫的，沒關係說到 Python 姐也略懂，來個範例：</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#!/usr/bin/python</span>
+
+<span class="kn">import</span> <span class="nn">RPi.GPIO</span> <span class="kn">as</span> <span class="nn">GPIO</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setmode</span><span class="p">(</span><span class="n">GPIO</span><span class="o">.</span><span class="n">BOARD</span><span class="p">)</span>   <span class="c">#實體腳位模式</span>
+<span class="n">LED_PIN</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">LED_PIN</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>  <span class="c">#設定 LED 燈的腳位為輸出</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"ON!"</span><span class="p">)</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">LED_PIN</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">HIGH</span><span class="p">)</span>  <span class="c">#對 LED 燈腳位輸出高電位</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">GPIO</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>GPIO 在 Python 裡面有個自己的 library，於是我們就可以藉由 import RPi.GPIO 來使用它，然後輸出高電位就可以看到 LED 燈亮起來了。</p>
+
+<h1 id="ruby-版本">Ruby 版本</h1>
+
+<p>Ruby 也有可以控制 GPIO 的 gem - <a href="https://github.com/jwhitehorn/pi_piper">pi_piper</a>，這個名字超級明顯就是拿美劇矽谷(<a href="http://www.imdb.com/title/tt2575988/">Silicon Valley</a>)裡面的虛擬產品 <a href="http://www.piedpiper.com/#hello">Pied Piper</a> 來惡搞啊 XDDDD</p>
+
+<p><img src="http://i.imgur.com/442bK4A.png" /></p>
+
+<p>Anyway,  <code class="highlighter-rouge">gem install pi_piper</code> 以後就可以開始使用 <code class="highlighter-rouge">PiPiper</code> 這個 module 來控制腳位行為了。</p>
+
+<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'pi_piper'</span>
+<span class="kp">include</span> <span class="no">PiPiper</span>
+
+<span class="no">LED_PIN</span> <span class="o">=</span> <span class="mi">18</span>
+
+<span class="n">led</span> <span class="o">=</span> <span class="no">PiPiper</span><span class="o">::</span><span class="no">Pin</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">pin: </span><span class="no">LED_PIN</span><span class="p">,</span> <span class="ss">direction: :out</span><span class="p">)</span>
+
+<span class="n">led</span><span class="p">.</span><span class="nf">on</span>
+<span class="nb">sleep</span> <span class="mi">3</span>
+
+<span class="n">led</span><span class="p">.</span><span class="nf">off</span>
+</code></pre>
+</div>
+
+<p>pi_piper 可以藉由 new 出一個 <code class="highlighter-rouge">Pin</code> 物件，定義它的腳位與方向（輸入/輸出）以後，用 <code class="highlighter-rouge">on</code> 和 <code class="highlighter-rouge">off</code> 方法來控制電位。</p>
+
+<p>但是重要的是先前我在使用 Python 的 RPi.GPIO 來控制腳位時定義的是 <em>實體腳位 (BOARD mode)</em> ，然而在 pi_piper 中 default 的腳位定義卻是 <em>Broadcom 腳位系統 (BCM mode)</em> ，所以可以發現本來在 Python code 中我的 <code class="highlighter-rouge">LED_PIN</code> 賦值是 12，在 Ruby code 裡面卻是 18。腳位轉換的表可以參考 <a href="http://wiringpi.com/wp-content/uploads/2013/03/pins.pdf">GPIO Pin Numbering Tables</a></p>
+
+<p>pi_piper 看起來基本可定義的腳位行為都有，也可以用 <code class="highlighter-rouge">watch</code> 的方法來寫開關或是 sensor，滿漂亮的 &lt;3</p>
+
+<h1 id="c-版本">C 版本</h1>
+
+<p>當然 Ruby 長處不是硬體，只是可以用 Ruby 寫寫硬體 code 可以感覺滿開心的。晚上打網球的時候和朋友聊到這件事，卻得到突破盲點的一句話：「Python 很慢啊為什麼要用 Python 寫 IO」，回家以後我就忍不住去寫了 C 語言版本 XDDDD</p>
+
+<p>我們的關鍵字是 <code class="highlighter-rouge">bcm2835</code> ，download + compile 以後就可以 include 來使用了。</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;bcm2835.h&gt;
+#define LED_PIN RPI_GPIO_P1_12
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="n">bcm2835_init</span><span class="p">()</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">perror</span><span class="p">(</span><span class="s">"Error"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">bcm2835_gpio_fsel</span><span class="p">(</span><span class="n">PIN</span><span class="p">,</span> <span class="n">BCM2835_GPIO_FSEL_OUTP</span><span class="p">);</span>
+  <span class="n">bcm2835_gpio_write</span><span class="p">(</span><span class="n">PIN</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+  <span class="n">delay</span><span class="p">(</span><span class="mi">300</span><span class="p">);</span>
+  <span class="n">bcm2835_gpio_write</span><span class="p">(</span><span class="n">PIN</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>關於 Raspberry Pi 對 LED 燈的簡單操作入門就是這樣啦。</p>
+
+<h1 id="後記">後記</h1>
+
+<p>Taipei Hackerspace 是個很酷的地方，而且沒想到居居居居然是大學時代的朋友在經營，太神奇啦。</p>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">shesee's 不定期更新</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-1">
+        <ul class="contact-list">
+          <li>shesee's 不定期更新</li>
+          <li><a href="mailto:sheseee@gmail.com">sheseee@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/carolhsu">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">carolhsu</span>
+            </a>
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/sheseee">
+              <span class="icon  icon--twitter">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                  c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+                </svg>
+              </span>
+
+              <span class="username">sheseee</span>
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Rails deployment++ @ AWS EC2 - 部署</title>
+  <meta name="description" content="  確認主機上有 apps 帳號, 密碼, 家目錄    $ sudo useradd apps$ sudo passwd apps   #輸入super user - apps的密碼$ sudo mkdir /home/apps/$ sudo chown -R apps:apps /home/apps/  #同...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://carolhsu.github.io/2012/07/19/rails-deployment-plus-plus-at-aws-ec2-bu-shu.html">
+  <link rel="alternate" type="application/rss+xml" title="shesee's 不定期更新" href="http://carolhsu.github.io/feed.xml" />
+</head>
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">shesee's 不定期更新</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Rails deployment++ @ AWS EC2 - 部署</h1>
+    <p class="post-meta">Jul 19, 2012</p>
+  </header>
+
+  <article class="post-content">
+    <!--more-->
+<ul>
+  <li>確認主機上有 apps 帳號, 密碼, 家目錄
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ sudo useradd apps
+$ sudo passwd apps   #輸入super user - apps的密碼
+$ sudo mkdir /home/apps/
+$ sudo chown -R apps:apps /home/apps/  #同前面，注意權限問題
+</code></pre>
+    </div>
+  </li>
+  <li>利用 apps 身份產生 ssh public key，並將 id_rsa.pub 貼到 github
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ sudo su apps  #以apps身份登入
+$ bash
+$ ssh-keygen ＃詢問密碼的時候保持空白即可
+$ pbcopy &lt; ~/.ssh/rsa_id.pub  #不用more，這樣可以避免掉終端機導致斷行要手動復原的情形
+</code></pre>
+    </div>
+  </li>
+  <li>開發端操作 產生 ssh key - 若已有一個ssh key可以不必再在本機端ssh-keygen一次
+    <div class="highlighter-rouge"><pre class="highlight"><code># 注意這是在local端(本機)
+$ ssh-keygen
+$ pbcopy &lt; ~/.ssh/rsa_id.pub
+然後貼到VPN(server端)上的 /home/apps/.ssh/authorized_keys =&gt; 要以apps身份登入創建檔案
+</code></pre>
+    </div>
+  </li>
+  <li>建立遠端主機的 database.yml.production 丟到個好位置 ex. /home/apps/database.yml.production
+    <div class="highlighter-rouge"><pre class="highlight"><code>production:
+adapter: mysql2
+encoding: utf8
+reconnect: false
+database: [database_name]
+pool: 5
+username: root
+password: [password]
+socket: /var/run/mysqld/mysqld.sock # 這邊是用 ubuntu 操作, mysqld.sock 有可能在不同位置
+</code></pre>
+    </div>
+  </li>
+  <li>編輯 /opt/nginx/conf/nginx.conf 加入
+    <div class="highlighter-rouge"><pre class="highlight"><code>server {
+      listen 80;
+      server_name [server_name]
+      root /home/apps/[your_app_name]/current/public;
+      passenger_enabled on;
+  }
+</code></pre>
+    </div>
+  </li>
+  <li>開發端加入 Capistrano 自動佈署
+    <div class="highlighter-rouge"><pre class="highlight"><code>gem 'capistrano'
+gem 'capistrano-ext'
+</code></pre>
+    </div>
+    <p><em>當然要bundle囉</em></p>
+  </li>
+  <li>專案 folder 下新增 Capfile
+    <div class="highlighter-rouge"><pre class="highlight"><code>load 'deploy' if respond_to?(:namespace) # cap2 differentiator
+Dir['vendor/gems/*/recipes/*.rb','vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
+load 'config/deploy' # remove this line to skip loading any of the default tasks
+load 'deploy/assets'
+</code></pre>
+    </div>
+  </li>
+  <li>新增 config/deploy.rb
+    <div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="nb">require</span> <span class="s1">'capistrano/ext/multistage'</span>
+<span class="nb">require</span> <span class="s1">'bundler/capistrano'</span> <span class="c1">#Using bundler with Capistrano</span>
+<span class="n">set</span> <span class="ss">:stages</span><span class="p">,</span> <span class="sx">%w(staging production)</span>
+<span class="n">set</span> <span class="ss">:default_stage</span><span class="p">,</span> <span class="s2">"production"</span> 
+</code></pre>
+    </div>
+  </li>
+  <li>新增 config/deploy/production.rb
+    <div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="p">[</span><span class="n">app_name</span><span class="p">]</span>
+<span class="n">set</span> <span class="ss">:domain</span><span class="p">,</span> <span class="p">[</span><span class="n">localhost</span><span class="p">]</span>
+<span class="n">set</span> <span class="ss">:repository</span><span class="p">,</span> <span class="s2">"git@github.com:[your_name]/[your_app_name].git"</span> <span class="c1"># your ssh way in github.</span>
+<span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s2">"/home/apps/[app_name]"</span> 
+<span class="n">role</span> <span class="ss">:app</span><span class="p">,</span> <span class="n">domain</span>
+<span class="n">role</span> <span class="ss">:web</span><span class="p">,</span> <span class="n">domain</span>
+<span class="n">role</span> <span class="ss">:db</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="ss">:primary</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+<span class="n">set</span> <span class="ss">:deploy_via</span><span class="p">,</span> <span class="ss">:remote_cache</span>
+<span class="n">set</span> <span class="ss">:deploy_env</span><span class="p">,</span> <span class="s2">"production"</span> 
+<span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="s2">"production"</span> 
+<span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
+<span class="n">set</span> <span class="ss">:branch</span><span class="p">,</span> <span class="s2">"master"</span> 
+<span class="n">set</span> <span class="ss">:scm_verbose</span><span class="p">,</span> <span class="kp">true</span>
+<span class="n">set</span> <span class="ss">:use_sudo</span><span class="p">,</span> <span class="kp">false</span>
+<span class="n">set</span> <span class="ss">:user</span><span class="p">,</span> <span class="s2">"apps"</span> 
+<span class="n">set</span> <span class="ss">:group</span><span class="p">,</span> <span class="s2">"apps"</span> 
+<span class="n">default_environment</span><span class="p">[</span><span class="s2">"PATH"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"/opt/ruby/bin:/usr/local/bin:/usr/bin:/bin:/usr/games"</span> 
+<span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
+<span class="n">desc</span> <span class="s2">"restart"</span> 
+<span class="n">task</span> <span class="ss">:restart</span> <span class="k">do</span>
+<span class="n">run</span> <span class="s2">"touch </span><span class="si">#{</span><span class="n">current_path</span><span class="si">}</span><span class="s2">/tmp/restart.txt"</span> 
+<span class="k">end</span>
+<span class="k">end</span>
+<span class="n">desc</span> <span class="s2">"Create database.yml and asset packages for production"</span> 
+<span class="n">after</span><span class="p">(</span><span class="s2">"deploy:update_code"</span><span class="p">)</span> <span class="k">do</span>
+<span class="n">db_config</span> <span class="o">=</span> <span class="s2">"/home/apps/database.yml.production"</span> 
+<span class="n">run</span> <span class="s2">"cp </span><span class="si">#{</span><span class="n">db_config</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">release_path</span><span class="si">}</span><span class="s2">/config/database.yml"</span> 
+<span class="k">end</span>  
+</code></pre>
+    </div>
+  </li>
+  <li>執行 deploy setup
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ cap deploy:setup
+</code></pre>
+    </div>
+  </li>
+  <li>執行 deploy
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ cap deploy
+</code></pre>
+    </div>
+  </li>
+  <li>執行遠端 migrate, 如出現 rake aborted! Unknown database 表示遠端主機無相應的資料庫 ( mysqladmin -u USER_NAME -p create DB_NAME )
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ cap deploy:migrate
+</code></pre>
+    </div>
+  </li>
+</ul>
+
+<p>PS.1
+如果建立了一個有密碼的 id_rsa.pub 導致 cap deploy 時發生錯誤
+遠端主機和 github 必須手動輸入密碼的作法是在 config/deploy/production.rb 加入</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>default_run_options[:pty] = true
+</code></pre>
+</div>
+
+<h1 id="本人碰到的地雷統整">本人碰到的地雷統整</h1>
+
+<h2 id="err--host-key-verification-failed">err :: Host key verification failed</h2>
+<div class="highlighter-rouge"><pre class="highlight"><code># --先用sudo su apps執行第一次的ssh github
+$ sudo su apps
+$ ssh -T git@github.com
+# 看到出現hi xxx就成功了，避掉Host key verification failed
+</code></pre>
+</div>
+<p>can’t find bundle
+—————–</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ gem install bundle
+# 應該說是先把super user - apps的bundle和gem都source起來（這應該是第一步--見下文）
+</code></pre>
+</div>
+<p>warning: Insecure world writable dir /opt/ruby in PATH, mode 040777
+——————————————————————-</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ sudo chmod go-w /opt/ruby
+# 解法以此類推
+</code></pre>
+</div>
+<p>No such file or directory – `/home/apps/forum_demo/releases/20120711053143/public/images’ , ‘stylesheet’, ‘javascript’
+———————————————————————————————————–</p>
+<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="n">set</span> <span class="ss">:normalize_asset_timestamps</span><span class="p">,</span> <span class="kp">false</span>
+</code></pre>
+</div>
+<p>apps(super user的使用者權限)的gem and bundle
+——————————————</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ sudo su apps
+$ bash
+$ echo "export PATH=/opt/ruby/bin:$PATH" &lt;&lt; ~/.profile &amp;&amp; . ~/.profile
+$ gem update --system
+$ source ~/.profile
+$ cd /home/apps/forum_demo
+$ touch tmp/restart.txt
+$ bundle check
+$ bundle install
+</code></pre>
+</div>
+<p>convert sqlite3 to mysql2
+————————-</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># local端(macbook pro)
+$ brew update
+$ brew install mysql
+
+--Gemfile
+- gem "sqlite3"
++ gem "mysql2"
+
+$ sqladmin -u root -p [passwd]
+create database [database_name@database.yml]
+quit
+$ rake db:migrate
+</code></pre>
+</div>
+<p>imagemagick雷
+————-</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># 一 定 要 cd到ruby1.9.2底下再裝imagemagick
+</code></pre>
+</div>
+<p>Completed 500 Internal Server Error
+———————————–</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># 原因：沒有precompile
+load 'deploy/assets'
+</code></pre>
+</div>
+<p>error :: Could not find a JavaScript runtime
+——————————————–</p>
+<div class="highlighter-rouge"><pre class="highlight"><code># app在ubuntu跑起來會有這個問題，解法
+$ sudo apt-get install nodejs
+
+# Or
+
+$ gem 'therubyracer'
+</code></pre>
+</div>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">shesee's 不定期更新</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-1">
+        <ul class="contact-list">
+          <li>shesee's 不定期更新</li>
+          <li><a href="mailto:sheseee@gmail.com">sheseee@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/carolhsu">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">carolhsu</span>
+            </a>
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/sheseee">
+              <span class="icon  icon--twitter">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                  c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+                </svg>
+              </span>
+
+              <span class="username">sheseee</span>
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>

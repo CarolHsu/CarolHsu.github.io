@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Rails 開發者最常犯的十種錯誤</title>
+  <meta name="description" content="Rails 是以 Ruby 語言寫就的，已經是最流行的 web application 開發框架之一。他的著名原則是「約定優於配置」，換而言之，Rails 假定我們會 follow 它的「標準」約定，例如說：命名、code 擺放的方式，或是更多其它有的沒的。如果我們是乖孩子照著做，所有的一切我們都不用特別擔心或思...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://carolhsu.github.io/2014/06/10/10-mistakes-for-rails.html">
+  <link rel="alternate" type="application/rss+xml" title="shesee's 不定期更新" href="http://carolhsu.github.io/feed.xml" />
+</head>
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">shesee's 不定期更新</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Rails 開發者最常犯的十種錯誤</h1>
+    <p class="post-meta">Jun 10, 2014</p>
+  </header>
+
+  <article class="post-content">
+    <p>Rails 是以 Ruby 語言寫就的，已經是最流行的 web application 開發框架之一。他的著名原則是「約定優於配置」，換而言之，Rails 假定我們會 follow 它的「標準」約定，例如說：命名、code 擺放的方式，或是更多其它有的沒的。如果我們是乖孩子照著做，所有的一切我們都不用特別擔心或思考太多細節，就馬上自己生出來了 – magic!</p>
+
+<p>但是就像是煉金術師的等價交換，如此方便的代價則是，我們一旦「出軌」，馬上會翻車，而且會跑出「這到底怎麼回事啊」等級的問題，而且通常這類的問題都會不可思議地複雜。</p>
+
+<p>Rails 雖然開發起來超級快速又方便，其實也很容易誤用，以下是 10 種容易發生的不良用法，順帶提醒如何避免發生出不可思議複雜等級的錯誤。</p>
+
+<!-- more -->
+
+<h2 id="1-放了太多邏輯在-controller-裡面">#1: 放了太多邏輯在 controller 裡面</h2>
+
+<p>這無疑是第一名，Rails 是 MVC(model, view, controller) 架構，在 Rails 中，我們總是會說 model 可以肥沒關係，但 controller 一定要瘦。但是時常我們會看到某人的 source code 在 controller 中放入了太多邏輯，與 view 相關的邏輯最好放入 <code class="highlighter-rouge">helper</code> 裡面，而商務邏輯（或主要邏輯），自然是放入 <code class="highlighter-rouge">model</code> 中，再將值藉由 controller 傳輸。</p>
+
+<p>如果出現違反 <a href="http://www.oodesign.com/single-responsibility-principle.html">Single Responsibility Principle</a> 的使用，會讓未來的改動更加麻煩而錯誤叢生。有時候我們會看到關於程式設計的 <code class="highlighter-rouge">cohesion(內聚)</code> 與 <code class="highlighter-rouge">coupling(耦合)</code> 等議題討論，我們喜歡的是 <code class="highlighter-rouge">增加內聚而減少耦合</code> 來把事情單純化，所以掌握到把不相關的責任放進別的界面中，也就是說不要讓一個界面參雜（也就是耦合）到一個以上的責任。</p>
+
+<p>所以說 controller 的責任是什麼呢？</p>
+
+<ul>
+  <li><strong>處理 session 和 cookie</strong> :  這或許也可以放進 <code class="highlighter-rouge">authentication/authorization</code> 中處理，或是另外的 process 來處理。</li>
+  <li><strong>選擇 Modle</strong> : 找出正確的 model object 並把 request 的參數傳遞進去。理想中應該要呼叫單一個 method，並且傳入一個 instance variable(實體變數) 以供 render 出 template 為 response 時使用。</li>
+  <li><strong>Request 的參數管理</strong> : 集合 request 的參數們，並且呼叫合適的 model 來傳遞他們。</li>
+  <li><strong>Rendering/Redirecting</strong> : Render 出結果（例如 html, xml, json 或其他），或是 redirect。</li>
+</ul>
+
+<p>遵守單一責任的原則，這是 Rails controller 中最基本的要求。</p>
+
+<h2 id="2-放了太多的邏輯在-view-裡面">#2: 放了太多的邏輯在 view 裡面</h2>
+
+<p>Rails 有自己 default 的 template engine - <a href="http://apidock.com/ruby/ERB">ERB</a>，是一個可以產生可變內容的很棒的頁面產生方式。然而如果我們不小心的話很快就會因為滿滿的 HTML 和 Ruby code 混亂的混合下，發現管理或是維護都變得超複雜。請遵守 <a href="http://en.wikipedia.org/wiki/Don%27t_repeat_yourself">DRY(don’t repeat yourself)</a> 原則。</p>
+
+<p>以下是一個常出現的邏輯，可以有很多方式讓它變得更乾淨，以一個簡單的例子作為示範，考慮到我們常常需要判斷是目前的使用者是不是已經登入了，有一個 <code class="highlighter-rouge">current_user</code> 的方法，然後會有一個 <code class="highlighter-rouge">if-else</code>，最後 <code class="highlighter-rouge">end</code> 像是這樣</p>
+
+<div class="language-html highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;h3&gt;</span>
+  Welcome,
+  <span class="err">&lt;</span>% if current_user %&gt;
+    <span class="err">&lt;</span>%= current_user.name %&gt;
+  <span class="err">&lt;</span>% else %&gt;
+    Guest
+  <span class="err">&lt;</span>% end %&gt;
+<span class="nt">&lt;/h3&gt;</span>
+</code></pre>
+</div>
+
+<p>然後這樣的東西可能在 view 中會處處出現，更好的方式是 <code class="highlighter-rouge">current_user</code> 應該 default 存在，不管使用者是不是已經登入了，如此一來可以讓這個 method 在 view 中出現得更加合理（有時候會是一個 nil object），舉例來說，我們或許可以定義一個  <code class="highlighter-rouge">current_user</code> 在 <code class="highlighter-rouge">app/controllers/application_controller</code></p>
+
+<p>``` ruby app/controllers/application_controller
+require ‘ostruct’</p>
+
+<p>helper_method :current_user</p>
+
+<p>def current_user
+  @current_user ||= User.find session[:user_id] if session[:user_id]
+  if @current_user
+    @current_user
+  else
+    OpenStruct.new(name: ‘Guest’)
+  end
+end</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+這樣我們就可以如此代換掉剛剛落落長的判斷，變成這樣
+
+
+``` html
+&lt;h3&gt;Welcome, &lt;%= current_user.name %&gt;&lt;/h3&gt;
+</code></pre>
+</div>
+
+<p>以下是推薦的做法們：</p>
+
+<ul>
+  <li>用 <code class="highlighter-rouge">layouts</code> 和 <code class="highlighter-rouge">partial layout</code> 適當的封裝一些會一直在頁面上重複使用的東西。</li>
+  <li>用 <code class="highlighter-rouge">presenters/decorators</code> 像是 <a href="https://github.com/drapergem/draper">Draper</a> 這類型的 gem 來封裝 view-building 邏輯在一個 Ruby object 中，然後我們就可以適度的添加一些邏輯運算方法，否則很可能就不小心在 view 中放入過度的邏輯運算了。</li>
+</ul>
+
+<h2 id="3-放了太多的邏輯在-model-裡面">#3: 放了太多的邏輯在 model 裡面</h2>
+
+<p>剛剛說到不要在 view 和 controller 中放進太多的邏輯，所以說唯一剩下可以放入所有邏輯的地方，不就只剩下 model 了嗎？</p>
+
+<p>嗯，不全然是這樣的啦。</p>
+
+<p>很多開發者犯了這個錯誤，把 <code class="highlighter-rouge">一切</code> 都放入了他們的 <code class="highlighter-rouge">ActiveRecord</code> ，最後導致了 mongo files 不僅僅違反了 single responsibility principle ，也成為了維護上的夢魘。</p>
+
+<p>功能上的，例如說 email 通知，連接外部的服務，轉換資料格式這類型的事情並不是 ActiveRecord 的責任，ActiveRecord 應該做到它最核心的任務 – <strong>尋找資料庫中的資料</strong>。</p>
+
+<p>所以說如果這個邏輯他不應該被放在 view 裡面，又不應該被放在 controller 裡面，也不應該被放在 model 裡面的時候，到底應該何去何從呢？</p>
+
+<p>答案是放進 <a href="http://blog.larrylv.com/how-to-refactor-rails-project/">plain old Ruby objects (POROs)</a>。有了像是 Rails 這樣一個（太過於）全面的框架，初階開發者往往不願意在框架以外的地方建立自己的 classes，但是把邏輯抽出到 POROs 往往可以避免 models 變得過於臃腫複雜。隨著 POROs，我們可以把像是 email 通知或是或是 API 的交互轉換封裝到他們各自的 class，而非放在一個 ActiveRecord 的 model 中。</p>
+
+<p>抱持這個原則，一般來說，我們的 model 中只能有以下的邏輯：</p>
+
+<ul>
+  <li><strong><code class="highlighter-rouge">ActiveRecord</code> 相關</strong> : 像是資料表關聯或是驗證等等</li>
+  <li><strong>簡單的改善方法</strong> : 例如說封裝一些有用的 attributes，並且儲存在資料庫中。</li>
+  <li><strong>Access wrappers</strong> : 隱藏外部的 model 資訊 - 例如說把 <code class="highlighter-rouge">first_name</code> 和 <code class="highlighter-rouge">last_name</code> 封裝成 <code class="highlighter-rouge">full_name</code></li>
+  <li><strong>複雜的 query</strong> : 例如說，很複雜的 <code class="highlighter-rouge">where</code> - 一般來說，我們都不應該用在 model 以外的地方使用 <code class="highlighter-rouge">where</code> 方法，或是 query-building</li>
+</ul>
+
+<h2 id="4-把泛用的-helper-class-搞得像垃圾堆">#4: 把泛用的 helper class 搞得像垃圾堆</h2>
+
+<p>這個錯誤的發生其實是 #3 的錯誤推論，像上面所說的，Rails 很強調把「命名」的零件放在他應該放的地方（是說 model, view 和 controller）。但是有時候我們真的應該給予不屬於這三處的零件更好的定義。</p>
+
+<p>Rails 生成器會很方便的建立出一個 helper 目錄，和一個新的 helper class 在我們創建的每一個新的 resource，藉由這樣，我們可以使用很多不適合于 model, view 和 controller 的功能。這真的是很誘惑人。</p>
+
+<p>雖然 Rails 很明確的定出了 MVC 為主要核心，好像也沒有特別阻止我們作出自己的 class，然後加入適合的目錄來放這些 code。當我們有額外需要的功能，應該先想想把哪些方法好好的命名並且放在一起，避免把 helper 變成一個垃圾場。</p>
+
+<h2 id="5-用太多-gem">#5: 用太多 gem</h2>
+
+<p>Ruby and Rails 支援非常豐富的 gem 生態系，收集提供了所有開發者能想到的東西。這對於想要快速地建立一個複雜 application 是極為有利的，但是如同煉金術師的等價交換，每用一個 gem 都付出了相對的學習成本，有許多 application 的 gemfile 根本就是不成比例的臃腫。</p>
+
+<p>這樣會導致幾個問題出現：過度使用 gem 多於這個 application 所需要的份量一定會降低性能，除了使用者體驗下降，也會消耗 server 的記憶體，增加營運成本。也需要更長的時間來啟動 Rails application，開發速度變慢，自動化測試的時間也更長（太慢的 test 被執行的次數一定是更少的，這是 <strong>鐵律</strong>）</p>
+
+<p>要知道我們放入的每一個 gem 或多或少會有其他依賴的 gem 一起被加進來，依此類推，增加一個 gem 會帶來複利程度的影響。舉例來說，加入一個 <code class="highlighter-rouge">rails_admin</code> gem 會一併引入它依賴的其他 11 個 gem，然後我們在 install 這個 Rails application 的時間就增加了大概 10%。（可怕吧）</p>
+
+<p>一個乾淨的 Rails 4.1.0 產生時，在原生的 <code class="highlighter-rouge">gemfile.lock</code> 中就已經含有 43 個 gem，顯然不僅在 <code class="highlighter-rouge">gemfile</code> 中所寫的，也就是說標準 Rails 的 gem 也儘量不引用互相依賴的 gem。</p>
+
+<p>仔細考慮添加進的每一個 gem，加上它的成本是否值得。例如某些開發者隨意的放了一個 rails_admin gem，因為很方便，但它卻也比不上某些花俏的 database browsing tool。就算我們的 application 需要給予 administator 特殊權限，自己的權限自己寫會比隨便放入這種 gem 來得更好。</p>
+
+<h2 id="6-忽視-log">#6: 忽視 log</h2>
+
+<p>雖然大多數開發者都知道 development 和 production 環境中提供了 log files，但是往往不是太重視這些訊息。雖然有一些 application 依賴像是 <a href="https://www.honeybadger.io">Honeybadger</a> 和 <a href="http://newrelic.com">New Relic</a> 這種 production monitor，但是重視 developing 與 testing log 也是很重要的事情。</p>
+
+<p>Rails 有很多神奇魔法，特別是 model，在我們的 model 中定義 associations 讓資料庫關聯變得很容易，所有的 SQL syntax 就這樣生成了，這真的很棒，但是我們怎麼知道這些 SQL syntax 有沒有效率呢？</p>
+
+<p>著名的例子就是 <a href="http://www.toptal.com/ruby-on-rails#nPlus1Queries">N + 1 query 問題</a>，雖然很好理解，但是唯一真的能觀察出它正在發生的方法只有藉由觀察我們的 log 檔。</p>
+
+<p>例如下面有一組典型的 blog query: 我們要找出所選的 posts 的所有 comments</p>
+
+<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">comments_for_top_three_posts</span>
+  <span class="n">posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">posts</span><span class="p">.</span><span class="nf">flat_map</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span>
+    <span class="n">post</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">to_a</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>當我們呼叫這個 method，我們會看到類似以下的 log，在單一的查詢後得到三個 posts，然後三個 posts 分別都只是為了找出各自相關的 comments</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Started GET "/posts/some_comments" for 127.0.0.1 at 2014-05-20 20:05:13 -0700
+Processing by PostsController#some_comments as HTML
+  Post Load (0.4ms)  SELECT "posts".* FROM "posts" LIMIT 3
+  Comment Load (5.6ms)  ELECT "comments".* FROM "comments" WHERE "comments"."post_id" = ?  [["post_id", 1]]
+  Comment Load (0.4ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = ?  [["post_id", 2]]
+  Comment Load (1.5ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = ?  [["post_id", 3]]
+  Rendered posts/some_comments.html.erb within layouts/application (12.5ms)
+Completed 200 OK in 581ms (Views: 225.8ms | ActiveRecord: 10.0ms)
+</code></pre>
+</div>
+
+<p>其實 <code class="highlighter-rouge">ActiveRecord</code> 可以使用預載來減少 query 次數，通過調用 Arel ( <code class="highlighter-rouge">ActiveRecord::Relation</code> ) 的 method 來建立 object。使用 <code class="highlighter-rouge">includes</code> ， <code class="highlighter-rouge">ActiveRecord</code> 確保所有指定的 associations 會先被預載，然後我們就可以使用最少的 query 次數：</p>
+
+<div class="language-ruby highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">comments_for_top_three_posts</span>
+  <span class="n">posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:comments</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">posts</span><span class="p">.</span><span class="nf">flat_map</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span>
+    <span class="n">post</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">to_a</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+</div>
+
+<p>改成上面的查詢方法以後，我們就可以發現 log 變成</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Started GET "/posts/some_comments" for 127.0.0.1 at 2014-05-20 20:05:18 -0700
+Processing by PostsController#some_comments as HTML
+  Post Load (0.5ms)  SELECT "posts".* FROM "posts" LIMIT 3
+  Comment Load (4.4ms)  SELECT "comments".* FROM "comments" WHERE"comments "."post_id" IN (1, 2, 3)
+  Rendered posts/some_comments.html.erb within layouts/application (12.2ms)
+Completed 200 OK in 560ms (Views: 219.3ms | ActiveRecord: 5.0ms)
+</code></pre>
+</div>
+
+<p>是不是更加有效率呢？</p>
+
+<p>N + 1 查詢問題只是其中一個顯著的例子，告訴我們應該更重視 log 找出效率低落的原因。而在開發過程中重視 log 可以幫助我們更快地找出這些病灶。在開發時數據量很小，或許不容易發現，等到資料量的增長，這類型的問題會導致 application 越來越慢。</p>
+
+<p>如果我們發現我們後來塞了太多的過期 log，也可以這樣<a href="http://rubyjunky.com/cleaning-up-rails-4-production-logging.html">打掃一下</a>。</p>
+
+<h2 id="7-缺乏自動化測試">#7: 缺乏自動化測試</h2>
+
+<p>Ruby on Rails 提供了強大的自動化測試功能，很多 Rails 開發者使用 TDD 或是 BDD，加上強大的測試框架例如 <a href="https://www.relishapp.com/rspec/">RSpec</a> 或是 <a href="http://cukes.info">Cucumber</a> 的 gem 來進行複雜的測試。</p>
+
+<p>儘管 Rails 有這麼多測試工具，沒想到還是不少開發團隊並不注重測試。雖然測試的覆蓋率或是全面性應該如何已經引發了許多爭議(<a href="http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html">DHH: TDD is dead</a>)，但無論如何很清楚的事實是，每一個 application 至少要有一定的自動化測試。</p>
+
+<p>經驗法則是，至少有個 high-level 的 controller spec 去測試一個 action，未來開發者很有可能要拓展或維護，或升級 Ruby/Rails 的版本，這時候有相當的 spec 可以幫助他們更明確工作內容，其中一個好處是，起碼我們不會漏掉原本有的功能。</p>
+
+<h2 id="8-區隔第三方服務">#8: 區隔第三方服務</h2>
+
+<p>Rails 的第三方服務一般來說都可以非常輕易地整合他們的功能，以 gem 的形式加進我們的 application，也讓我們可以呼叫相關的 API。但是當我們的 gem 壞了或是開始變得很慢怎麼辦？</p>
+
+<p>為了避免這個情況，我們應該把這些服務移動到像是背景執行的形式讓它們更具彈性，而非照平常的方式直接調用。而在 Rails 中為了這個目的而誕生的 gem 包含：</p>
+
+<ul>
+  <li><a href="https://github.com/collectiveidea/delayed_job">Delayed job</a></li>
+  <li><a href="https://github.com/resque/resque">Resque</a></li>
+  <li><a href="http://sidekiq.org/">Sidekiq</a></li>
+</ul>
+
+<p>萬一，某些背景排程執行的程序失敗了，我們必須確保 application 有完整的錯誤處理與故障轉移的流程，而當第三方的 gem 壞掉的時候，我們也應該移除 gem 以後重新測試 application 來驗證沒有這個 gem 的話，服務仍能啟動。</p>
+
+<h2 id="9-與既有-database-緊密-migrate">#9: 與既有 database 緊密 migrate</h2>
+
+<p>Rails 的資料庫遷移(migration) 機制允許我們新增或刪除資料庫裡面的表或是欄位，並且這些 migration 是以連續的方式存在(以時間戳命名)，若以一個淨空的資料庫開始開發，這是一個很棒的方式，可以同步我們的 code 與資料庫的 schema。</p>
+
+<p>剛開始的時候，這是好事，然而隨著開發時間的推移，重新 migrate 一個資料庫就需要一段相當長的時間了。有時候錯位或亂序，或是更恐怖的是有另外一個 Rails application 同時也在使用這個資料庫呢？</p>
+
+<p>Rails 通常會在 <code class="highlighter-rouge">db/schema.rb</code> 中呈現目前資料庫當前的狀態，而 <code class="highlighter-rouge">schema.rb</code> 甚至可以在沒有任何 migration files 的狀況下生成資料庫 schema，像是運行</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rake db:schema:dump
+</code></pre>
+</div>
+
+<p>一個常見的錯誤就是對既有資料庫試圖去做 migrate，而正確的方法應該是更動 <code class="highlighter-rouge">schema.rb</code> 使之相應。</p>
+
+<p>當 migration 已經變得很龐大，要花上很長的時間來 migrate，或是因為某些因素沒有辦法正確的 create database，我們就應該勇敢地去清理舊的 migrations，轉存成新的 schema，然後從那裡繼續下去。建立一個新的開發環境的時候我們應該用</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rake db:schema:load
+</code></pre>
+</div>
+
+<p>而不是多數開發者依賴的</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rake db:migrate
+</code></pre>
+</div>
+
+<p>也可以參考 <a href="http://guides.rubyonrails.org/migrations.html#schema-dumping-and-you">Rails Guide</a></p>
+
+<h2 id="10-在-repo-裡面放入敏感資訊">#10: 在 repo 裡面放入敏感資訊</h2>
+
+<p>Rails 的設計已經包含了基本的安全性來避免攻擊，有一些是經由 secrete token 以便安全的在瀏覽器中傳遞 sessions。這些都已經存在 <code class="highlighter-rouge">config/secrets.yml</code> 之中，他會讀取環境變數與 production server 來產生 token，較舊版本的 Rails 會把這個 token 放在 <code class="highlighter-rouge">config/initializers/secret_token.rb</code> 裡面，或是 <code class="highlighter-rouge">config/database.yml</code> 。但是這些檔案常常不小心就被 commit 到版本控制裡面…</p>
+
+<p>一旦不小心被有心人看到了，誰都可以去我們的資料庫逛逛，帶走一些敏感的資料例如使用者資訊。</p>
+
+<p>所以，我們也應該 check 一下版本控制的 config 檔案（如果你使用 <code class="highlighter-rouge">git</code> ，就看看你的 <code class="highlighter-rouge">.gitignore</code> 吧），必須忽略掉這類型檔案與 token，你的 production server 應該要有自己的 token，或是改由像是 <a href="https://github.com/bkeepers/dotenv">dotenv</a> 這類型的 gem 來生成。</p>
+
+<hr />
+
+<p>Rails 的強大與魔法會常常不小心讓人忽視了自己開發時潛在的缺陷，我們應該要時常確保這些 code 容易擴展或是維護，因為專案是會一直長大的。</p>
+
+<p>開發者不僅要快速建立 application，更需要注意的應該是去發現為什麼程式變得更慢、更不可靠甚至是更不安全的問題。去研究 Rails 框架是很重要的，可以幫助我們理解整體的架構、設計，和開發過程產生的 issues。這可以幫助開發者生產出更高水準的 code。</p>
+
+<p>更詳細的討論可以看<a href="http://www.toptal.com/ruby-on-rails/top-10-mistakes-that-rails-programmers-make">這裡</a></p>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">shesee's 不定期更新</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-1">
+        <ul class="contact-list">
+          <li>shesee's 不定期更新</li>
+          <li><a href="mailto:sheseee@gmail.com">sheseee@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/carolhsu">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">carolhsu</span>
+            </a>
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/sheseee">
+              <span class="icon  icon--twitter">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                  c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+                </svg>
+              </span>
+
+              <span class="username">sheseee</span>
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>給 Rails developer 看的 Angular + Rails 起步走</title>
+  <meta name="description" content="學 Angular 其實沒有想像中的難，官方的文件就很完整了。">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://carolhsu.github.io/2014/06/07/step-by-step-with-angularjs-and-rails.html">
+  <link rel="alternate" type="application/rss+xml" title="shesee's 不定期更新" href="http://carolhsu.github.io/feed.xml" />
+</head>
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">shesee's 不定期更新</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">給 Rails developer 看的 Angular + Rails 起步走</h1>
+    <p class="post-meta">Jun 7, 2014</p>
+  </header>
+
+  <article class="post-content">
+    <p>學 Angular 其實沒有想像中的難，官方的<a href="https://docs.angularjs.org/api">文件</a>就很完整了。</p>
+
+<p>只是地獄都在你想要結合兩種科技的時候產生。</p>
+
+<p>以下教學是假設你已經熟悉 Rails, 不過 AngularJS 還好的狀態（不一定要會）。</p>
+
+<!-- more -->
+
+<h1 id="產生一個-rails-專案">產生一個 Rails 專案</h1>
+
+<p>現在用一個一個有 CRUD (Create, Read, Update and Delete - 新增編輯刪除和讀取) 功能的餐廳 web application，不過其實在這裡我們只會真的用到 CR 的部分，UD 是不會用到的。</p>
+
+<p>我們先把這個專案取名叫做 Restauranteur</p>
+
+<p>接下來我會用 <a href="http://www.postgresql.org">PostgreSQL</a> 和 <a href="http://rspec.info">RSpec</a> 繼續下去。</p>
+
+<h1 id="開始">開始！</h1>
+
+<p>先創造一個專案</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rails new restauranteur --database<span class="o">=</span>postgresql --skip-test-unit
+</code></pre>
+</div>
+
+<p>如果你有用 <a href="http://pow.cx">Pow</a>，那現在可以把專案加進去</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>ln -s <span class="o">[</span>你的路徑]/restauranteur ~/.pow/restauranteur
+</code></pre>
+</div>
+
+<p>在 PostgreSQL 中創一個新人物來用專案的資料庫</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>createuser -P -s -e restauranteur
+</code></pre>
+</div>
+
+<p>把 RSpec 放進 gemfile 中</p>
+
+<p>``` ruby gemfile
+gem “rspec-rails”, “~&gt; 2.14.0”</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+安裝 RSpec
+
+
+``` bash
+$ bundle install
+$ rails g rspec:install
+</code></pre>
+</div>
+
+<p>新建 database</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rake db:create
+</code></pre>
+</div>
+
+<h1 id="建立-restauranteur-的-model">建立 Restauranteur 的 model</h1>
+
+<p>現在基本的專案已經 setup 了，接下來建立第一個 resource: Restaurant，先給他唯一的 attribute(屬性) - name, 一個 String(字串)</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rails generate scaffold restaurant name:string
+</code></pre>
+</div>
+
+<p>雖然已經用 scaffold 偷吃步噴出了一堆 code，為了維持 Rails 的好氣味，我們在 migration file 做點小加工，保證 name 是唯一的</p>
+
+<p>``` ruby db/migrate/[timestamp]_create_restaurants.rb
+class CreateRestaurants &lt; ActiveRecord::Migration
+  def change
+    create_table :restaurants do |t|
+      t.string :name</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>  t.timestamps
+end
+
+# Add the following line
+add_index :restaurants, :name, unique: true   end end ```
+</code></pre>
+</div>
+
+<p>OK, let’s migrate it</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>rake db:migrate
+</code></pre>
+</div>
+
+<p>同時，我們開始寫相關的 spec 來驗證確保我們無法新增不合法的 restaurants，例如說我們剛剛在 migration 中增加的 name is unique</p>
+
+<p>``` ruby spec/models/restaurant_spec.rb
+require ‘spec_helper’</p>
+
+<p>describe Restaurant do
+  before do
+    @restaurant = Restaurant.new(name: “Momofuku”)
+  end</p>
+
+<p>subject { @restaurant }</p>
+
+<p>it { should respond_to(:name) }
+  it { should be_valid }</p>
+
+<p>describe “when name is not present” do
+    before { @restaurant.name = “ “ }
+    it { should_not be_valid }
+  end</p>
+
+<p>describe “when name is already taken” do
+    before do
+      restaurant_with_same_name = @restaurant.dup
+      restaurant_with_same_name.name = @restaurant.name.upcase
+      restaurant_with_same_name.save
+    end</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>it { should_not be_valid }   end end ```
+</code></pre>
+</div>
+
+<p>其實這裡還可以用 <a href="https://github.com/stympy/faker">faker</a> 和 <a href="https://github.com/thoughtbot/factory_girl">factory_girl</a> 把 RSpec unit test 寫得更漂亮，但我想要下次有空的時候再好好整理一下測試部分的筆記 XD</p>
+
+<p>跑測試吧。</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>bundle <span class="nb">exec </span>rspec spec/models/restaurant_spec.rb
+</code></pre>
+</div>
+
+<p>你會發現噴出錯誤了，這是因為雖然「資料庫」已經把 name 欄位設為 unique，但 model 中卻沒有相應的驗證，雙重保証是好習慣，讓我們增加一個新的驗證讓這個測試通過。</p>
+
+<p>``` ruby app/models/restaurant.rb
+class Restaurant &lt; ActiveRecord::Base
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
+end</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+Pass了，看起來不錯，繼續往下走。
+
+
+# 把 AnjularJS 混合進去
+
+
+當然不可能在這個文章一口氣突然也讓你變成 AngularJS 的資深開發者 XD
+
+
+在這裏，我們是以 "Hello world" 等級的 AngularJS 放在這個 Rails application 裡面，然後可以在這個 restaurant 中做到 CRUD。
+
+
+這樣的 "Hello world" 其實不必依賴任何特定的 Rails resource，可以想像成 Rails 提供了後端 API，然後創造一個 StaticPage 給 AngularJS 大展身手。
+
+
+## 創造 controller
+
+
+``` bash
+$ rails generate controller static_pages index
+</code></pre>
+</div>
+
+<p>這裡的 root route (根路徑) 目前還只是 “Welcome to Rails” 那個 default 頁，現在我們把它設定成 StaticPageController 的 index 頁</p>
+
+<p>``` ruby config/routes.rb
+Restauranteur::Application.routes.draw do
+  # Add the following line
+  root ‘static_pages#index’
+end</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+## 安裝 AngularJS
+
+
+1. 為了要可以測試，我們需要一個叫做 ```angular-mocks.js``` 的檔名，雖然說 AngularJS 的文件中並沒有提到，但是我們需要。
+2. 在最新的 [AngularJS tutorial](https://docs.angularjs.org/tutorial) 中，如果我沒有記錯， ```angular.js``` 與 ```angular-mocks.js``` 會有兼容性問題。我知道 1.1.5 版中可以，所以接下來即便是有最新的穩定版，這裡還是使用 1.1.5 版，當然這件事情應該會隨著時間流逝做更新的 :)
+
+
+[下載](https://code.angularjs.org) ```angular.js``` 與 ```angular-mocks.js``` 然後把這些放進 ```app/assets/javascripts``` 下面。
+
+
+``` bash
+$ wget http://code.angularjs.org/1.1.5/angular.js http://code.angularjs.org/1.1.5/angular-mocks.js
+$ mv angular* app/assets/javascripts
+</code></pre>
+</div>
+
+<h2 id="加進-asset-pipeline-中">加進 asset pipeline 中</h2>
+
+<p>現在我們要告訴 Rails 說，我們的 project 加進了 AngularJS，我們要確保 Rails 在運行的過程中會載入。</p>
+
+<blockquote>
+  <p>注意，把你的 <code class="highlighter-rouge">Turbolinks</code> 關掉，他們互斥。</p>
+</blockquote>
+
+<p>``` javascript app/assets/javascripts/application.js
+// This is a manifest file that’ll be compiled into application.js, which will include all the files
+// listed below.
+//
+// Any JavaScript/Coffee file within this directory, lib/assets/javascripts, vendor/assets/javascripts,
+// or vendor/assets/javascripts of plugins, if any, can be referenced here using a relative path.
+//
+// It’s not advisable to add code directly here, but if you do, it’ll appear at the bottom of the
+// compiled file.
+//
+// Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
+// about supported directives.
+//
+//= require jquery
+//= require jquery_ujs</p>
+
+<p>// Add the following two lines
+//= require angular
+//= require main</p>
+
+<p>//= require_tree .</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+## 製作 Layout
+
+
+加入 ng-app 和 ng-view，是宣告 Angular application 在這個頁面上的第一步，也要注意把 turbolinks 相關的 flash mention 移掉
+
+
+``` html app/views/layouts/application.html.erb
+<span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">ng-app=</span><span class="s">"restauranteur"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+  <span class="nt">&lt;title&gt;</span>Restauranteur<span class="nt">&lt;/title&gt;</span>
+  <span class="err">&lt;</span>%= stylesheet_link_tag    "application", media: "all" %&gt;
+  <span class="err">&lt;</span>%= javascript_include_tag "application" %&gt;
+  <span class="err">&lt;</span>%= csrf_meta_tags %&gt;
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">ng-view</span><span class="nt">&gt;</span>
+  <span class="err">&lt;</span>%= yield %&gt;
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+</div>
+
+<h2 id="創造一個-angular-controller">創造一個 Angular controller</h2>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir -p app/assets/javascripts/angular/controllers
+</code></pre>
+</div>
+
+<p>現在我們來做一個 AngularJS 的 controller file，叫做 “home controller”，而在 AngularJS 的世界裡約定俗成的 controller file name 會是 <code class="highlighter-rouge">Ctrl</code> 結尾，所以我們的檔案名稱為 <code class="highlighter-rouge">app/assets/javascripts/angular/controllers/HomeCtrl.js.coffee</code> :</p>
+
+<p>```coffeescript app/assets/javascripts/angular/controllers/HomeCtrl.js.coffee
+@restauranteur.controller ‘HomeCtrl’, [‘$scope’, ($scope) -&gt;
+  # Notice how this controller body is empty
+]</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+## 創造一個 Angular route
+
+
+現在我們要讓 ```HomeCtrl``` 成為我們的 "default page"，在此我們定義我們的路由在 ```app/assets/javascripts/main.js.coffee```
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+// #=&gt; 這是宣告一個 angular app
+@restauranteur = angular.module('restauranteur', [])
+
+// #=&gt; 這些是定義根目錄(otherwise 都回到這裡)
+@restauranteur.config(['$routeProvider', ($routeProvider) -&gt;
+  $routeProvider.
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+</code></pre>
+</div>
+
+<h2 id="創造一個-angular-template">創造一個 Angular template</h2>
+
+<p>我們還是需要有個地方來放我們的 angular templates，就放在 <code class="highlighter-rouge">public/templates</code> 底下，當然你也可以放在任何你喜歡的地方</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir public/templates
+</code></pre>
+</div>
+
+<p>新增一個 <code class="highlighter-rouge">public/templates/home.html</code> 隨便寫點字，待會應該要可以在瀏覽器上看到</p>
+
+<p>``` html public/templates/home.html
+This is the home page.</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+好了，現在打開 [http://restauranteur.dev/](http://restauranteur.dev/) 或是 [http://localhost:3000/](http://restauranteur.dev/) 你應該要可以看見 ```home.html``` 裡面的內容了。
+
+
+## 一個 data binding 的範例
+
+
+這說起來滿有趣的，但也有點討人厭，我們來真的送些東西進去吧，像這樣編輯
+
+
+``` javascript app/assets/angular/controllers/HomeCtrl.js.coffee
+@restauranteur.controller 'HomeCtrl', ['$scope', ($scope) -&gt;
+  $scope.foo = 'bar'
+]
+</code></pre>
+</div>
+
+<p>這有點像是在 Rails 的 controller 中寫 <code class="highlighter-rouge">@foo = "bar"</code> ，我們也可以把這個 <code class="highlighter-rouge">foo</code> 值插進  template <code class="highlighter-rouge">home.html</code> 中，用兩個大括號：</p>
+
+<figure class="code-highlight-figure"><figcaption class="code-highlight-caption"><span class="code-highlight-caption-title">home.html</span></figcaption><div class="code-highlight"><pre class="code-highlight-pre"><div data-line="1" class="code-highlight-row numbered"><div class="code-highlight-line">Value of "foo": &#x7b;&#x7b;foo&#x7d;&#x7d;</div></div></pre></div></figure>
+
+<h1 id="開始實戰">開始實戰</h1>
+
+<p>我們已經做好一個超簡單的 Hello world 級 application, 接下來就製作一個完全涵括 CRUD 的 application，其實也沒有難很多。</p>
+
+<h2 id="給一些種子資料">給一些種子資料</h2>
+
+<p>在 templates 下面新增一個 restaurants 資料夾</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir public/templates/restaurants
+</code></pre>
+</div>
+
+<p>首先來做一個 index page:</p>
+
+<figure class="code-highlight-figure"><figcaption class="code-highlight-caption"><span class="code-highlight-caption-title">public/templates/restaurants/index.html</span></figcaption><div class="code-highlight"><pre class="code-highlight-pre"><div data-line="1" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/#"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
+</div></div><div data-line="2" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;ul</span> <span class="na">ng-repeat=</span><span class="s">"restaurant in restaurants"</span><span class="nt">&gt;</span>
+</div></div><div data-line="3" class="code-highlight-row numbered"><div class="code-highlight-line">  <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">ng-click=</span><span class="s">"viewRestaurant(restaurant.id)"</span><span class="nt">&gt;</span>&#x7b;&#x7b; restaurant.name &#x7d;&#x7d;<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+</div></div><div data-line="4" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;/ul&gt;</span></div></div></pre></div></figure>
+
+<p>然後製作一個對應的 controller</p>
+
+<p>``` javascript app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee
+@restauranteur.controller ‘RestaurantIndexCtrl’, [‘$scope’, ‘$location’, ‘$http’, ($scope, $location, $http) -&gt;
+  $scope.restaurants = []
+  $http.get(‘./restaurants.json’).success((data) -&gt;
+    $scope.restaurants = data
+  )
+]</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+接下來，我們調整一下路由
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+@restauranteur = angular.module('restauranteur', [])
+
+@restauranteur.config(['$routeProvider', ($routeProvider) -&gt;
+  $routeProvider.
+    when('/restaurants', {
+      templateUrl: '../templates/restaurants/index.html',
+      controller: 'RestaurantIndexCtrl'
+    }).
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+</code></pre>
+</div>
+
+<p>最後，我們可以到 <code class="highlighter-rouge">/#/restaurants/</code> 並且應該可以看到餐廳的清單。</p>
+
+<h1 id="新增第一個測試">新增第一個測試</h1>
+
+<p>然後我們要增加 JS 的測試資料夾</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>mkdir spec/javascripts
+</code></pre>
+</div>
+
+<p>寫下 spec</p>
+
+<p>``` javascript spec/javascripts/controllers_spec.js.coffee
+describe “Restauranteur controllers”, -&gt;
+  beforeEach module(“restauranteur”)</p>
+
+<p>describe “RestaurantIndexCtrl”, -&gt;
+    it “should set restaurants to an empty array”, inject(($controller) -&gt;
+      scope = {}
+      ctrl = $controller(“RestaurantIndexCtrl”,
+        $scope: scope
+      )
+      expect(scope.restaurants.length).toBe 0
+    )</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+新增 config
+
+
+``` javascript spec/javascripts/restauranteur.conf.js
+module.exports = function(config) {
+  config.set({
+    basePath: '../..',
+
+    frameworks: ['jasmine'],
+
+    autoWatch: true,
+
+    preprocessors: {
+      '**/*.coffee': 'coffee'
+    },
+
+    files: [
+      'app/assets/javascripts/angular.js',
+      'app/assets/javascripts/angular-mocks.js',
+      'app/assets/javascripts/main.js.coffee',
+      'app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee',
+      'app/assets/javascripts/angular/*',
+      'spec/javascripts/*_spec.js.coffee'
+    ]
+  });
+};
+</code></pre>
+</div>
+
+<p>安裝 <a href="https://www.npmjs.org/package/karma">Karma</a> 並且啟動 server</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>sudo npm install -g karma
+<span class="gp">$ </span>sudo npm install -g karma-ng-scenario
+<span class="gp">$ </span>karma start spec/javascripts/restauranteur.conf.js
+</code></pre>
+</div>
+
+<p>如果你進入 <a href="http://localhost:9876/">http://localhost:9876/</a> 應該可以看到 JS 相關的測試已經成功地跑過了。也可以調整一下測試數值玩玩看紅綠測試。</p>
+
+<p>在這裡所寫的測試其實是沒有意義的，只是為了協助大家弄清楚 Angular 如何寫測試的一個基本概念，還有很多，例如說 CoffeeScript 的 preprocess 和 mocks.js 怎麼相容的都還不會在這裡清楚的提到。</p>
+
+<h1 id="建立起我們的-restaurants-page-吧">建立起我們的 Restaurants page 吧</h1>
+
+<p>現在在 restaurant index template 上面弄一些小小的調整</p>
+
+<figure class="code-highlight-figure"><figcaption class="code-highlight-caption"><span class="code-highlight-caption-title">public/templates/restaurants/index.html</span></figcaption><div class="code-highlight"><pre class="code-highlight-pre"><div data-line="1" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;ul</span> <span class="na">ng-repeat=</span><span class="s">"restaurant in restaurants"</span><span class="nt">&gt;</span>
+</div></div><div data-line="2" class="code-highlight-row numbered"><div class="code-highlight-line">  <span class="nt">&lt;li&gt;</span>&#x7b;&#x7b;restaurant.name&#x7d;&#x7d; (&#x7b;&#x7b;restaurant.id&#x7d;&#x7d;)<span class="nt">&lt;/li&gt;</span>
+</div></div><div data-line="3" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;/ul&gt;</span></div></div></pre></div></figure>
+
+<p>如果再看一次 <code class="highlighter-rouge">/#/restaurents</code> ，你就會注意到 restaurants 是沒有 ID 的，為什麼呢？</p>
+
+<p>在 Rails 4, 當你用 generator 來產生 scaffold, 會給你一些 .jbuilder 檔案像是:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>ls -1 app/views/restaurants/<span class="k">*</span>.jbuilder
+app/views/restaurants/index.json.jbuilder
+app/views/restaurants/show.json.jbuilder
+</code></pre>
+</div>
+
+<p>如果你隨便打開一個例如說 <code class="highlighter-rouge">app/views/restaurants/index.json.jbuilder</code> , 你會看到</p>
+
+<p>``` ruby app/views/restaurants/index.json.jbuilder
+json.array!(@restaurants) do |restaurant|
+  json.extract! restaurant, :name
+  json.url restaurant_url(restaurant, format: :json)
+end</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+像你所看見的，它包含了 ```:name``` 但卻沒有 ```:id```, 所以我們就把它加上去吧
+
+
+``` ruby app/views/restaurants/index.json.jbuilder
+json.array!(@restaurants) do |restaurant|
+  json.extract! restaurant, :id, :name
+  json.url restaurant_url(restaurant, format: :json)
+end
+</code></pre>
+</div>
+
+<p>儲存以後 reflash <code class="highlighter-rouge">/#/restaurants</code>, ID 就出現了。</p>
+
+<p>現在我們把 template 改回這樣：</p>
+
+<figure class="code-highlight-figure"><figcaption class="code-highlight-caption"><span class="code-highlight-caption-title">public/templates/restaurants/index.html</span></figcaption><div class="code-highlight"><pre class="code-highlight-pre"><div data-line="1" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"/#"</span><span class="nt">&gt;</span>index<span class="nt">&lt;/a&gt;</span>
+</div></div><div data-line="2" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;ul</span> <span class="na">ng-repeat=</span><span class="s">"restaurant in restaurants"</span><span class="nt">&gt;</span>
+</div></div><div data-line="3" class="code-highlight-row numbered"><div class="code-highlight-line">  <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">ng-click=</span><span class="s">"viewRestaurant(restaurant.id)"</span><span class="nt">&gt;</span>&#x7b;&#x7b; restaurant.name &#x7d;&#x7d;<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+</div></div><div data-line="4" class="code-highlight-row numbered"><div class="code-highlight-line"><span class="nt">&lt;/ul&gt;</span></div></div></pre></div></figure>
+
+<p>這裡面出現了一個我們目前根本沒有定義過的 <code class="highlighter-rouge">viewRestaurant()</code> ，現在把這個定義加進去 controller 中</p>
+
+<p>``` javascript app/assets/javascripts/angular/controllers/RestaurantIndexCtrl.js.coffee
+@restauranteur.controller ‘RestaurantIndexCtrl’, [‘$scope’, ‘$location’, ‘$http’, ($scope, $location, $http) -&gt;
+  $scope.restaurants = []
+  $http.get(‘./restaurants.json’).success((data) -&gt;
+    $scope.restaurants = data
+  )</p>
+
+<p># Add the following lines
+  $scope.viewRestaurant = (id) -&gt;
+    $location.url “/restaurants/#{id}”
+]</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+
+是因為 Rails 的路徑約定俗成就是 ```resource_name/:id``` 可以進入 "show" 頁面，所以我們如此來定義 ```viewRestaurant()``` ，接下來產生 show 的 template, route 和 controller:
+
+
+&lt;figure class='code-highlight-figure'&gt;&lt;figcaption class='code-highlight-caption'&gt;&lt;span class='code-highlight-caption-title'&gt;public/templates/restaurants/show.html&lt;/span&gt;&lt;/figcaption&gt;&lt;div class='code-highlight'&gt;&lt;pre class='code-highlight-pre'&gt;&lt;div data-line='1' class='code-highlight-row numbered'&gt;&lt;div class='code-highlight-line'&gt;&lt;span class="nt"&gt;&amp;lt;h1&amp;gt;&lt;/span&gt;&amp;#x7b;&amp;#x7b;restaurant.name&amp;#x7d;&amp;#x7d;&lt;span class="nt"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/figure&gt;
+
+
+``` javascript app/assets/javascripts/main.js.coffee
+@restauranteur = angular.module('restauranteur', [])
+
+@restauranteur.config(['$routeProvider', ($routeProvider) -&gt;
+  $routeProvider.
+    when('/restaurants', {
+      templateUrl: '../templates/restaurants/index.html',
+      controller: 'RestaurantIndexCtrl'
+    }).
+    when('/restaurants/:id', {
+      templateUrl: '../templates/restaurants/show.html',
+      controller: 'RestaurantShowCtrl'
+    }).
+    otherwise({
+      templateUrl: '../templates/home.html',
+      controller: 'HomeCtrl'
+    })
+])
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">javascript app/assets/javascripts/angular/controllers/RestaurantShowCtrl.js.coffee
+@restauranteur.controller 'RestaurantShowCtrl', ['$scope', '$http', '$routeParams', ($scope, $http, $routeParams) -&gt;
+  $http.get("./restaurants/#{$routeParams.id}.json").success((data) -&gt;
+    $scope.restaurant = data
+  )
+]
+</code></p>
+
+<p>現在重新整理 <code class="highlighter-rouge">/#/restaurants</code> 頁面，你應該就可以找到 show restaurant detail 的按鈕及頁面了。</p>
+
+<hr />
+
+<p>以上參考至<a href="https://www.honeybadger.io/blog/2013/12/11/beginners-guide-to-angular-js-rails">這裡</a></p>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">shesee's 不定期更新</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-1">
+        <ul class="contact-list">
+          <li>shesee's 不定期更新</li>
+          <li><a href="mailto:sheseee@gmail.com">sheseee@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/carolhsu">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">carolhsu</span>
+            </a>
+          </li>
+          
+
+          
+          <li>
+            <a href="https://twitter.com/sheseee">
+              <span class="icon  icon--twitter">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M15.969,3.058c-0.586,0.26-1.217,0.436-1.878,0.515c0.675-0.405,1.194-1.045,1.438-1.809
+                  c-0.632,0.375-1.332,0.647-2.076,0.793c-0.596-0.636-1.446-1.033-2.387-1.033c-1.806,0-3.27,1.464-3.27,3.27 c0,0.256,0.029,0.506,0.085,0.745C5.163,5.404,2.753,4.102,1.14,2.124C0.859,2.607,0.698,3.168,0.698,3.767 c0,1.134,0.577,2.135,1.455,2.722C1.616,6.472,1.112,6.325,0.671,6.08c0,0.014,0,0.027,0,0.041c0,1.584,1.127,2.906,2.623,3.206 C3.02,9.402,2.731,9.442,2.433,9.442c-0.211,0-0.416-0.021-0.615-0.059c0.416,1.299,1.624,2.245,3.055,2.271 c-1.119,0.877-2.529,1.4-4.061,1.4c-0.264,0-0.524-0.015-0.78-0.046c1.447,0.928,3.166,1.469,5.013,1.469 c6.015,0,9.304-4.983,9.304-9.304c0-0.142-0.003-0.283-0.009-0.423C14.976,4.29,15.531,3.714,15.969,3.058z"/>
+                </svg>
+              </span>
+
+              <span class="username">sheseee</span>
+            </a>
+          </li>
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">大多數內容是 Ruby on Rails，心血來潮天時地利人和才會更新，簡直令人髮指。
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+  </body>
+
+</html>
